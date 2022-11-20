@@ -1,29 +1,34 @@
-
-from __init__ import __init__
-import matplotlib as plt
-import Memory
-import torch
-import torch.optim as optim
-import torch.nn as nn
+from DQN import Agent
+from Environment import Application_env
 import numpy as np
-import DQN
-from __init__ import NUM_EPISODES, LEARNING_RATE, DISCOUNT_RATE
-env, model, optimizer, rewards, memory, loss_function= __init__()
-steps_done = 0
-Q = np.zeros([env.observation_space.shape, env.action_space.shape])
-for i in range (NUM_EPISODES):
-    rewards_sum_i = 0
-    t = 0
-    done = False
-    s = env.reset()
-    while not done:
-        a = np.argmax(Q[s, :])
-        s1, reward, done, _ = env.step(a)
-        # Update Q table
-        Q[s, a] = (1 - LEARNING_RATE) * Q[s, a] + \
-            LEARNING_RATE * (reward + DISCOUNT_RATE * np.max(Q[s1, :]))
-        # Update cummulative rewards
-        rewards_sum_i += reward * DISCOUNT_RATE ** t
-        s = s1
-        t += 1
-    rewards[i] = rewards_sum_i
+
+if __name__ == '__main__':
+    # Parameters
+    APP_SIZE = 3
+    LEARNING_RATE = 0.1
+
+    # Initialize environment and agent
+    env = Application_env(app_size=APP_SIZE, lr=LEARNING_RATE)
+    agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4,
+            eps_end=0.01, input_dims=[8], lr=0.003)
+    scores, eps_history = [], []
+
+    times = 500
+    for i in range(times):
+        score = 0
+        done = False
+        observation = env.reset()
+        while not done:
+            action = agent.choose_action(observation)
+            observation_, reward, done, info = env.step(action)
+            score += reward
+            agent.store_transition(observation, action, reward, observation_, done)
+            agent.learn()
+            observation = observation_
+        scores.append(score)
+        eps_history.append(agent.epsilon)
+
+        avg_score = np.mean(scores[-100:])
+
+        print('epsilon ', i, 'score %.2f' % score, 'average score %.2f' % avg_score, 'epsilon %.2f' % agent.epsilon)
+    x = [i+1 for i in range(times)]
