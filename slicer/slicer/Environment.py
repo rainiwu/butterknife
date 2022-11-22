@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 class Application_env(object):
     def __init__(self, app_size, lr, batch_size):
@@ -64,24 +64,23 @@ class Application_env(object):
         # temporary QoE calculation
         self.previous_QoE_list = np.copy(self.QoE_list)
         for i in range(len(np.array(self.QoE_list)) - 1):
-            self.QoE_list[i] += self.priority_list[i] * (i + 1)
+            self.QoE_list[i] += self.priority_list[i] * (i + 1)/100
         #self.QoE_list /= np.sum(self.QoE_list)
 
     def calculate_reward(self, action):
         action_index = action // 2
-        
         min_index = self.find_target_index()
         if min_index == action_index:
             if self.action_space[action] < 0:
-                return -3
+                return -300
             reward = self.QoE_list[min_index] - self.previous_QoE_list[min_index]
             if reward == 0 and action_index not in self.block_list:
                 self.block_list.append(action_index)
-                return -1
+                return -100
             if reward != 0 and action_index in self.block_list:
                 self.block_list.remove(action_index)
         else:
-            reward = -1
+            reward = -100
         return reward
 
     def find_target_index(self):
