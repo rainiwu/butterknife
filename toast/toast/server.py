@@ -1,5 +1,8 @@
-import zmq
 import pytun
+import zmq
+import zmq.asyncio
+
+import asyncio
 
 from typing import Dict, Tuple
 
@@ -33,11 +36,11 @@ class Server:
         # dict with key of client_ip, and value of (to_sock, from_sock)
         self.client_sockets: Dict[str, Tuple[zmq.Socket, zmq.Socket]] = {}
 
-    def handle_handshake(self) -> None:
+    async def handle_handshake(self) -> None:
         """
         handle a handshake request
         """
-        self.handshake_sock.recv()  # get some empty request
+        await self.handshake_sock.recv()  # get some empty request
         self.__initialize_client(self.client_ip)
         self.handshake_sock.send_string(
             self.CLIENT_IP_PREFIX + str(self.client_ip)
@@ -56,13 +59,13 @@ class Server:
             self.client_sockets[dest][0].send_string(payload)
             self.client_sockets[dest][0].recv()
 
-    def process_incoming(self) -> None:
+    async def process_incoming(self) -> None:
         """
         gets all packets from all clients, and sends it to the interface
         """
         for val in self.client_sockets.values():
-            if val[1].poll(timeout=0.01):
-                payload = val[1].recv_string()
+            if await val[1].poll(timeout=0.01):
+                payload = await val[1].recv_string()
                 self.tun.write(payload)
                 val[1].send_string("")
 
@@ -85,3 +88,21 @@ class Server:
             + str(client_ip)
             + "_fromcli"
         )
+
+
+if __name__ == "__main__":
+    server = Server()
+    loop = asyncio.new_event_loop()
+    loop.add_reader(server.tun, server.process_outgoing)
+
+    async def proc_handshake_forever(server: Server):
+        while True:
+            await server.handle_handshake()
+
+    async def proc_incoming_forever(server: Server):
+        while True:
+            await server.process_incoming()
+
+    loop.create_task(proc_handshake_forever(server))
+    loop.create_task(proc_incoming_forever(server))
+    loop.run_forever()

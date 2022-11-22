@@ -1,5 +1,8 @@
 import pytun
 import zmq
+import zmq.asyncio
+
+import asyncio
 
 
 class Client:
@@ -37,11 +40,11 @@ class Client:
         self.send_sock.send_string(payload)
         self.send_sock.recv()  # reset the socket
 
-    def process_incoming(self) -> None:
+    async def process_incoming(self) -> None:
         """
         gets a packet from the server and sends it to the interface
         """
-        payload = self.recv_sock.recv_string()
+        payload = await self.recv_sock.recv_string()
         self.tun.write(payload)
         self.recv_sock.send()  # reset the socket
 
@@ -58,3 +61,16 @@ class Client:
         result: str = str(socket.recv())
         socket.close()
         return result
+
+
+if __name__ == "__main__":
+    client = Client()
+    loop = asyncio.new_event_loop()
+    loop.add_reader(client.tun, client.process_outgoing)
+
+    async def proc_incoming_forever(client: Client):
+        while True:
+            await client.process_incoming()
+
+    loop.create_task(proc_incoming_forever(client))
+    loop.run_forever()
