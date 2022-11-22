@@ -9,12 +9,12 @@ if __name__ == '__main__':
     BATCH_SIZE = 64
 
     # Initialize environment and agent
-    env = Application_env(app_size=APP_SIZE, lr=0.01, batch_size=BATCH_SIZE)
-    agent = Agent(gamma=0.99, epsilon=1, batch_size=BATCH_SIZE, n_actions=APP_SIZE*2,
+    env = Application_env(app_size=APP_SIZE, lr=0.05, batch_size=BATCH_SIZE)
+    agent = Agent(gamma=0.99, epsilon=1, batch_size=BATCH_SIZE, n_actions=APP_SIZE * 2,
             eps_end=0.01, input_dims=[APP_SIZE * 2], lr=0.003)
     scores, eps_history = [], []
 
-    times = 500000
+    times = 100000
     observation = env.reset()
     for i in range(times):
         score = 0
