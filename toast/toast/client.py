@@ -26,8 +26,8 @@ class Client:
         self.recv_sock: zmq.Socket = self.context.socket(zmq.REP)
         self.send_sock: zmq.Socket = self.context.socket(zmq.REQ)
 
-        self.recv_sock.connect(self.IPC_PREFIX + ip + "_recv")
-        self.send_sock.connect(self.IPC_PREFIX + ip + "_send")
+        self.recv_sock.connect(self.IPC_PREFIX + ip + "_tocli")
+        self.send_sock.connect(self.IPC_PREFIX + ip + "_fromcli")
 
     def process_outgoing(self) -> None:
         """
@@ -54,6 +54,7 @@ class Client:
         """
         socket: zmq.Socket = context.socket(zmq.REQ)
         socket.connect(self.HANDSHAKE_ADDR)
+        socket.send_string("")
         result: str = str(socket.recv())
         socket.close()
         return result
