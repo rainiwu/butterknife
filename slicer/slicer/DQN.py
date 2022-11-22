@@ -58,7 +58,7 @@ class Agent():
     
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
-            state = T.tesnor([observation]).to(self.Q_eval.device)
+            state = T.tensor(np.array([observation], dtype=np.float32)).to(self.Q_eval.device)
             actions = self.Q_eval.forward(state)
             action = T.argmax(actions).item()
         else:
@@ -66,16 +66,16 @@ class Agent():
         return action
 
     def learn(self):
-        if self.mem_cntr < self.batch_size_size:
+        if self.mem_cntr < self.batch_size:
             return
         self.Q_eval.optimizer.zero_grad()
         max_mem = min(self.mem_cntr, self.mem_size)
         batch = np.random.choice(max_mem, self.batch_size, replace=False)
 
         batch_index = np.arange(self.batch_size, dtype=np.int32)
-        state_batch = T.tensor(self.state_memory[batch].to(self.Q_eval.device))
-        new_state_batch = T.sensor(self.new_state_memory[batch]).to(self.Q_eval.device)
-        reward_batch = T.tensor(self.reward_memory[batch].to(self.Q_eval.device))
+        state_batch = T.tensor(self.state_memory[batch]).to(self.Q_eval.device)
+        new_state_batch = T.tensor(self.new_state_memory[batch]).to(self.Q_eval.device)
+        reward_batch = T.tensor(self.reward_memory[batch]).to(self.Q_eval.device)
         terminal_batch = T.tensor(self.terminal_memory[batch]).to(self.Q_eval.device)
 
         action_batch = self.action_memory[batch]
