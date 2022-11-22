@@ -5,13 +5,13 @@ import numpy as np
 if __name__ == '__main__':
     # Parameters
     APP_SIZE = 10
-    LEARNING_RATE = 0.1
+    LEARNING_RATE = 0.2
     BATCH_SIZE = 64
 
     # Initialize environment and agent
-    env = Application_env(app_size=APP_SIZE, lr=LEARNING_RATE, batch_size=BATCH_SIZE)
-    agent = Agent(gamma=0.99, epsilon=0.5, batch_size=BATCH_SIZE, n_actions=APP_SIZE*2,
-            eps_end=0.01, input_dims=[APP_SIZE], lr=0.003)
+    env = Application_env(app_size=APP_SIZE, lr=0.5/APP_SIZE, batch_size=BATCH_SIZE)
+    agent = Agent(gamma=0.99, epsilon=1, batch_size=BATCH_SIZE, n_actions=APP_SIZE*2,
+            eps_end=0.01, input_dims=[APP_SIZE * 2], lr=0.003)
     scores, eps_history = [], []
 
     times = 50000
