@@ -19,7 +19,7 @@ class client_buffer():
         self.my_buffer = [buffer_size]
         self.stall_timer = 0
         self.BUFF_REQ = "GET buffered"
-        self.MAN_req = "GET manifest"
+        self.MAN_REQ = "GET manifest"
     
     def start(self):
         self.socket.send_string(self.MAN_REQ)
