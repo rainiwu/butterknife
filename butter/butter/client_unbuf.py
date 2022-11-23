@@ -9,7 +9,7 @@ socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
 print(f"Sending manifest request ...")
-socket.send_string("GET manifest 0")
+socket.send_string("GET manifest unbuffered")
 m_received = socket.recv()
 start = time.time()
 print(f"Received reply [ {m_received} ]")
@@ -25,6 +25,7 @@ while 1:
         stall_start = time.time()
     else: 
         stall_end = time.time()
+
                                                                                                                                                                                                                                         
     stall_time = stall_time + (stall_end - stall_start)
 
