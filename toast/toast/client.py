@@ -17,8 +17,8 @@ class Client:
     def __init__(self, name: str = "toast_ue") -> None:
         self.name = name
 
-        self.context = zmq.Context(1)
-        ip: str = self.__get_ip(self.context)
+        self.context = zmq.asyncio.Context(1)
+        ip: str = asyncio.run(self.__get_ip(self.context))
 
         self.tun = pytun.TunTapDevice(name=name)
         self.tun.addr = ip
@@ -36,7 +36,7 @@ class Client:
         """
         reads a packet from the interface and sends it to the server
         """
-        payload = self.tun.read(self.tun.MTU)
+        payload = self.tun.read(self.tun.mtu)
         self.send_sock.send_string(payload)
         self.send_sock.recv()  # reset the socket
 
@@ -48,7 +48,7 @@ class Client:
         self.tun.write(payload)
         self.recv_sock.send()  # reset the socket
 
-    def __get_ip(self, context: zmq.Context) -> str:
+    async def __get_ip(self, context: zmq.asyncio.Context) -> str:
         """
         obtains an IP address from the server
 
@@ -56,10 +56,13 @@ class Client:
         :return: an ip address obtained from the server
         """
         socket: zmq.Socket = context.socket(zmq.REQ)
+        print(f"connecting to {self.HANDSHAKE_ADDR}")
         socket.connect(self.HANDSHAKE_ADDR)
-        socket.send_string("")
-        result: str = str(socket.recv())
+        await socket.send_string("handshake")
+        print("sent handshake request, awaiting")
+        result: str = await socket.recv_string()
         socket.close()
+        print(f"received ip {result}")
         return result
 
 
