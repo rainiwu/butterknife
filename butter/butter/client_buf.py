@@ -6,15 +6,6 @@ MAN_REQ = "GET manifest"
 BUFF_REQ = "GET buffered"
 BUFFER_SIZE = 100
 
-#  Do 10 requests, waiting each time for a response
-#for request in range(10):
-#    print(f"Sending request {request} ...")
-#    socket.send_string("Get manifest")
-#    m_received = socket.recv()
-#    print(f"Received reply {request} [ {m_received} ]")
-
-
-
 class client_buffer():
     def __init__(self, address="tcp://localhost:5555", buffer_size=BUFFER_SIZE):
         self.context = zmq.Context()
@@ -37,6 +28,7 @@ class client_buffer():
             self.socket.send_string(BUFF_REQ)
             reply = self.socket.recv()
             self.my_buffer[self.current_buffer] = reply
+            print(f"Received reply {BUFF_REQ} [ {reply} ]")
             self.current_buffer = (self.current_buffer + 1) % self.max_buffer
 
 
