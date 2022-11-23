@@ -1,5 +1,5 @@
 import zmq
-from manifest import manifest
+import manifest
 import time
 
 context = zmq.Context()
@@ -9,7 +9,7 @@ socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
 print(f"Sending manifest request ...")
-socket.send("GET manifest 0")
+socket.send_string("GET manifest 0")
 m_received = socket.recv()
 start = time.time()
 print(f"Received reply [ {m_received} ]")
@@ -18,10 +18,10 @@ stall_time = 0
 qoe = 100
 
 while 1:
-    socket.send("GET unbuffered ", qoe)
+    socket.send_string("GET unbuffered ", qoe)
     frame_received = socket.recv()
 
-    if(frame_received == NULL):
+    if(frame_received == None):
         stall_start = time.time()
     else: stall_end = time.time()
                                                                                                                                                                                                                                         
