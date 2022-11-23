@@ -38,7 +38,7 @@ class client_buffer():
             self.my_buffer[self.current_buffer] = reply
             print(f"Received reply {self.BUFF_REQ} [ {reply} ]")
             self.occupied_buffer += 1
-            self.current_buffer = (self.current_buffer + 1) % self.max_buffer
+            self.current_buffer = (self.current_buffer + 1) % len(self.my_buffer)
 
     def consume(self):
         while True:
