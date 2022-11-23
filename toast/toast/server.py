@@ -20,7 +20,7 @@ class Server:
     def __init__(
         self, ip: str = "172.16.0.1", name: str = "toast_ran"
     ) -> None:
-        self.context = zmq.Context(1)
+        self.context = zmq.asyncio.Context(1)
 
         self.tun = pytun.TunTapDevice(name=name)
         self.tun.addr = ip
@@ -29,6 +29,7 @@ class Server:
         self.tun.up()
 
         self.handshake_sock: zmq.Socket = self.context.socket(zmq.REP)
+        print(f"binding to {self.HANDSHAKE_ADDR}")
         self.handshake_sock.bind(self.HANDSHAKE_ADDR)
 
         self.client_ip: int = 2
@@ -40,9 +41,11 @@ class Server:
         """
         handle a handshake request
         """
-        await self.handshake_sock.recv()  # get some empty request
+        print("awaiting handshake")
+        await self.handshake_sock.recv_string()  # get some empty request
+        print("received handshake request")
         self.__initialize_client(self.client_ip)
-        self.handshake_sock.send_string(
+        await self.handshake_sock.send_string(
             self.CLIENT_IP_PREFIX + str(self.client_ip)
         )
         self.client_ip += 1
@@ -51,11 +54,13 @@ class Server:
         """
         reads a packet from the interface and sends it to the appropriate client
         """
-        payload = self.tun.read(self.tun.MTU)
+        payload = self.tun.read(self.tun.mtu)
         temp = bytearray(payload)
         # strip the ipv4 packet to get dest addr
         dest: str = "".join(str(val) + "." for val in temp[20:24])[0:-1]
+        print(f"processing outgoing {dest}")
         if dest in self.client_sockets.keys():
+            print(f"sending to {dest}")
             self.client_sockets[dest][0].send_string(payload)
             self.client_sockets[dest][0].recv()
 
@@ -63,6 +68,7 @@ class Server:
         """
         gets all packets from all clients, and sends it to the interface
         """
+        print("processing incoming")
         for val in self.client_sockets.values():
             if await val[1].poll(timeout=0.01):
                 payload = await val[1].recv_string()
@@ -98,11 +104,7 @@ if __name__ == "__main__":
     async def proc_handshake_forever(server: Server):
         while True:
             await server.handle_handshake()
-
-    async def proc_incoming_forever(server: Server):
-        while True:
             await server.process_incoming()
 
     loop.create_task(proc_handshake_forever(server))
-    loop.create_task(proc_incoming_forever(server))
     loop.run_forever()
