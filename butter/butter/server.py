@@ -40,13 +40,18 @@ while True:
         # For buffered video, send the buffered manifest. 
         mani = manifest(chunks, 1, framesPerSecond, 0)
         socket.send_pyobj(mani)
+        print(f"Unbuffered Manifest Sent")
     elif message == MAN_REQ_BUFF:
         # For buffered video, send the buffered manifest. 
         mani = manifest(chunks, framesPerChunk, framesPerSecond, 1)
         socket.send_pyobj(mani)
+        print(f"Buffered Manifest Sent")
     elif UNBUFF_REQ in message:
         socket.send(os.urandom(1*bytesPerFrame))
         QoEunbuff = re.findall("\d+", message)[0]
+        print(f"Unbuffered Chunk Sent")
     elif BUFF_REQ in message:
         socket.send(os.urandom(framesPerChunk*bytesPerFrame))
         QoEunbuff = re.findall("\d+", message)[0]
+        print(f"Buffered Chunk Sent")
+
