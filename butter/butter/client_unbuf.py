@@ -23,7 +23,8 @@ while 1:
 
     if(frame_received == None):
         stall_start = time.time()
-    else: stall_end = time.time()
+    else: 
+        stall_end = time.time()
                                                                                                                                                                                                                                         
     stall_time = stall_time + (stall_end - stall_start)
 

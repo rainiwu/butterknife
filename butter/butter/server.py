@@ -10,7 +10,7 @@ from manifest import manifest
 import re
 
 MAN_REQ_BUFF = "GET manifest buffered"
-MAN_REQ_UNBUFF = "GET manifest unbuffered"
+MAN_REQ_UNBUFF = "GET manifest 0"
 BUFF_REQ = "GET buffered"
 UNBUFF_REQ = "GET unbuffered"
 
@@ -50,7 +50,7 @@ while True:
     elif UNBUFF_REQ in message.decode("utf-8") :
         socket.send(os.urandom(1*bytesPerFrame))
         QoEunbuff = message.decode("utf-8").split()[-1]
-        print(f"Unbuffered Chunk Sent")
+        print(f"Unbuffered Chunk Sent, QoE = {QoEunbuff}")
     elif BUFF_REQ in message.decode("utf-8") :
         socket.send(os.urandom(framesPerChunk*bytesPerFrame))
         QoEbuff = message.decode("utf-8").split()[-1]
