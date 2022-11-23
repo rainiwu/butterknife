@@ -11,7 +11,8 @@ import manifest
 import re
 
 MAN_REQ = "GET manifest"
-INIT_REQ = "GET init"
+BUFF_REQ = "GET buffered"
+UNBUFF_REQ = "GET unbuffered"
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
@@ -27,7 +28,6 @@ bytesPerFrame = 10000
 
 
 # QoE 
-QoE = 0
 
 
 while True:
@@ -37,7 +37,6 @@ while True:
     if message == MAN_REQ:
         mani = manifest(chunks, framesPerChunk, frames)
         socket.send_pyobj(mani)
-    elif INIT_REQ in message:
+    elif UNBUFF_REQ in message:
         socket.send(os.urandom(framesPerChunk*bytesPerFrame))
         QoE = re.findall("\d+", message)[0]
-        

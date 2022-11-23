@@ -18,8 +18,6 @@ class DeepQNetwork(nn.Module):
         self.loss = nn.MSELoss()
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
         self.to(self.device)
-        self.count = 0
-        self.max_count = 5000
 
     def forward(self, state):
         x = F.relu(self.fc1(state))
@@ -40,7 +38,7 @@ class Agent():
         self.mem_size = max_mem_size
         self.batch_size = batch_size
         self.mem_cntr = 0
-        
+
         self.Q_eval = DeepQNetwork(self.lr, n_actions=n_actions, input_dims=input_dims, fc1_dims=256, fc2_dims=256)
         self.state_memory = np.zeros((self.mem_size, *input_dims), dtype=np.float32)
         self.new_state_memory = np.zeros((self.mem_size, *input_dims), dtype=np.float32)
