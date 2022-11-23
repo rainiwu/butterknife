@@ -46,11 +46,11 @@ while True:
         mani = manifest(chunks, framesPerChunk, framesPerSecond, 1)
         socket.send_pyobj(mani)
         print(f"Buffered Manifest Sent")
-    elif UNBUFF_REQ in message:
+    elif UNBUFF_REQ in message.decode("utf-8") :
         socket.send(os.urandom(1*bytesPerFrame))
         QoEunbuff = re.findall("\d+", message)[0]
         print(f"Unbuffered Chunk Sent")
-    elif BUFF_REQ in message:
+    elif BUFF_REQ in message.decode("utf-8") :
         socket.send(os.urandom(framesPerChunk*bytesPerFrame))
         QoEunbuff = re.findall("\d+", message)[0]
         print(f"Buffered Chunk Sent")
