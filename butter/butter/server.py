@@ -37,11 +37,11 @@ while True:
     #  Wait for next request from client
     message = socket.recv()
 
-    if message == MAN_REQ_UNBUFF
+    if message == MAN_REQ_UNBUFF:
         # For buffered video, send the buffered manifest. 
         mani = manifest(chunks, 1, framesPerSecond, 0)
         socket.send_pyobj(mani)
-    elif message == MAN_REQ_BUFF
+    elif message == MAN_REQ_BUFF:
         # For buffered video, send the buffered manifest. 
         mani = manifest(chunks, framesPerChunk, framesPerSecond, 1)
         socket.send_pyobj(mani)
