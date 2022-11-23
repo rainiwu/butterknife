@@ -10,7 +10,7 @@ socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
 print(f"Sending manifest request ...")
-socket.send("GET manifest")
+socket.send("GET manifest 0")
 m_received = socket.recv()
 start = time.time()
 print(f"Received reply [ {m_received} ]")
