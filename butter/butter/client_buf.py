@@ -18,7 +18,7 @@ class client_buffer():
         self.max_buffer = buffer_size
         self.my_buffer = [buffer_size]
         self.stall_timer = 0
-        self.BUFF_REQ = "GET buffered"
+        self.BUFF_REQ = "GET buffered 0"
         self.MAN_REQ = "GET manifest buffered"
     
     def start(self):
@@ -45,7 +45,7 @@ class client_buffer():
             if self.occupied_buffer == 0:
                 self.stall_timer = 0
                 print("Stalling: Starving")
-                self.stall()
+                self.stall_consume()
 
             consumed_info = self.my_buffer[self.consume_index]
             self.occupied_buffer -= 1
@@ -68,13 +68,13 @@ class client_buffer():
 if __name__ == '__main__':
     cb = client_buffer("tcp://localhost:5555", BUFFER_SIZE)
     cb.start()
-
+    cb.run()
     # Create two processes
-    run = Process(target=cb.run)
-    consume = Process(target=cb.consume())
+    #run = Process(target=cb.run)
+    #consume = Process(target=cb.consume())
 
-    run.start()
-    consume.start()
+    #run.start()
+    #consume.start()
 
-    run.join()
-    consume.join()
+    #run.join()
+    #consume.join()
