@@ -11,6 +11,6 @@ socket.connect("tcp://localhost:5555")
 #  Do 10 requests, waiting each time for a response
 for request in range(10):
     print(f"Sending request {request} ...")
-    socket.send("Get manifest")
+    socket.send_string("Get manifest")
     m_received = socket.recv()
     print(f"Received reply {request} [ {m_received} ]")
