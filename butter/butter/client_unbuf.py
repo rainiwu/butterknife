@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import zmq
 from manifest import manifest
 import time
@@ -8,15 +9,28 @@ context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
-#  Do 10 requests, waiting each time for a response
-for request in range(10):
-    print(f"Sending request {request} ...")
-    socket.send("Get manifest")
-    m_received = socket.recv()
-    print(f"Received reply {request} [ {m_received} ]")
+print(f"Sending manifest request ...")
+socket.send("GET manifest")
+m_received = socket.recv()
+start = time.time()
+print(f"Received reply [ {m_received} ]")
 
-#start a timer as soon as the socket opens with the server (server side)
-#figure out time stalled (start a timer when ..)
-#client requests manifest, then the actual video (server side)
-#anytime when there are no frames, it should count as stall time
-#ask for the first video file
+stall_time = 0
+qoe = 100
+
+while 1:
+    socket.send("GET unbuffered ", qoe)
+    frame_received = socket.recv()
+
+    if(frame_received == NULL):
+        stall_start = time.time()
+    else: stall_end = time.time()
+                                                                                                                                                                                                                                        
+    stall_time = stall_time + (stall_end - stall_start)
+
+    end = time.time()
+    total_time = end - start
+
+    qoe = (1 - (stall_time/total_time)) * 100
+    socket.send(qoe)
+    
