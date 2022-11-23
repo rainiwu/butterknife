@@ -40,4 +40,3 @@ while True:
     elif INIT_REQ in message:
         socket.send(os.urandom(framesPerChunk*bytesPerFrame))
         QoE = re.findall("\d+", message)[0]
-        
