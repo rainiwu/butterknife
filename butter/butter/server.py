@@ -3,7 +3,6 @@
 #
 
 import time
-import numpy
 import string
 import os
 import zmq
