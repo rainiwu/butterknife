@@ -10,7 +10,7 @@ from manifest import manifest
 import re
 
 MAN_REQ_BUFF = "GET manifest buffered"
-MAN_REQ_UNBUFF = "GET manifest 0"
+MAN_REQ_UNBUFF = "GET manifest unbuffered"
 BUFF_REQ = "GET buffered"
 UNBUFF_REQ = "GET unbuffered"
 
@@ -38,6 +38,7 @@ while True:
     print(f"Message Received: {message}")
 
     if message.decode("utf-8") == MAN_REQ_UNBUFF:
+        #print(f"im not stupid!")
         # For buffered video, send the buffered manifest. 
         mani = manifest(chunks, 1, framesPerSecond, 0)
         socket.send_pyobj(mani)

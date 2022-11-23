@@ -1,8 +1,7 @@
 import zmq
 from manifest import manifest
 import time
-import asyncio
-from multiprocessing import Process
+import threading
 BUFFER_SIZE = 100
 
 class client_buffer():
@@ -26,33 +25,35 @@ class client_buffer():
         self.my_manifest = self.socket.recv()
         print("Received manifest from server")
 
-    def run(self):
-        while True:
+    def run(self, target):
+        start = time.time()
+        end = time.time()
+        while end - start < target:
             if self.occupied_buffer == self.max_buffer:
                 self.stall_timer = 0
                 print("Stalling: Too full")
                 self.stall_run()
-
             self.socket.send_string(self.BUFF_REQ)
             reply = self.socket.recv()
             self.my_buffer[self.current_buffer] = reply
-            print(f"Received reply {self.BUFF_REQ} [ {reply} ]")
+            print(f"Received reply ")#{self.BUFF_REQ} [ {reply} ]")
             self.occupied_buffer += 1
             self.current_buffer = (self.current_buffer + 1) % len(self.my_buffer)
+            end = time.time()
 
-    def consume(self):
-        while True:
+    def consume(self, target):
+        start = time.time()
+        end = time.time()
+        while end - start < target:
             if self.occupied_buffer == 0:
                 self.stall_timer = 0
                 print("Stalling: Starving")
-                self.stall_consume()
-
+                #self.stall_consume()
             consumed_info = self.my_buffer[self.consume_index]
             self.occupied_buffer -= 1
-            print(f"Consume info {consumed_info}")
-            time.sleep(1/self.my_manifest.frameRate)
-            self.consume_index = (self.consume_index + 1) % self.max_buffer
-            
+            print(f"Consume info ")#{consumed_info}")
+            self.consume_index = (self.consume_index + 1) % len(self.my_buffer)
+            end = time.time()
 
     def stall_consume(self):
         while self.occupied_buffer == 0:
@@ -68,13 +69,7 @@ class client_buffer():
 if __name__ == '__main__':
     cb = client_buffer("tcp://localhost:5555", BUFFER_SIZE)
     cb.start()
-    cb.run()
-    # Create two processes
-    #run = Process(target=cb.run)
-    #consume = Process(target=cb.consume())
-
-    #run.start()
-    #consume.start()
-
-    #run.join()
-    #consume.join()
+    
+    while True:
+        cb.run(0.001)
+        cb.consume(0.001)
