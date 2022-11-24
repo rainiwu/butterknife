@@ -25,14 +25,9 @@ while 1:
     if(frame_received == None):
         stall = 1
         stall_start = time.time()
-<<<<<<< Updated upstream
-    else: 
+    elif(frame_received == None and stall == 1): 
         stall_end = time.time()
 
-=======
-    elif(stall == 1 and frame_received != None):
-        stall_end = time.time()
->>>>>>> Stashed changes
                                                                                                                                                                                                                                         
     if(stall == 0):
         stall_time = 0
