@@ -18,16 +18,26 @@ stall_time = 0
 qoe = 100
 
 while 1:
+    stall = 0
     socket.send_string("GET unbuffered ", qoe)
     frame_received = socket.recv()
 
     if(frame_received == None):
+        stall = 1
         stall_start = time.time()
+<<<<<<< Updated upstream
     else: 
         stall_end = time.time()
 
+=======
+    elif(stall == 1 and frame_received != None):
+        stall_end = time.time()
+>>>>>>> Stashed changes
                                                                                                                                                                                                                                         
-    stall_time = stall_time + (stall_end - stall_start)
+    if(stall == 0):
+        stall_time = 0
+    else:
+        stall_time = stall_time + (stall_end - stall_start)
 
     end = time.time()
     total_time = end - start
