@@ -24,7 +24,7 @@ chunks = 25
 framesPerChunk = 120
 framesPerSecond = 30
 # Average bytes per frame to be 10e3.
-bytesPerFrame = 10e3
+bytesPerFrame = 10000
 
 
 # QoE 
