@@ -23,7 +23,7 @@ socket.bind("tcp://*:5555")
 chunks = 25
 framesPerChunk = 120
 framesPerSecond = 30
-# Average bytes per frame to be 10e3.
+# Average bytes per frame to be 10,000.
 bytesPerFrame = 10000
 
 
@@ -49,7 +49,7 @@ while True:
         socket.send_pyobj(mani)
         print(f"Buffered Manifest Sent")
     elif UNBUFF_REQ in message.decode("utf-8") :
-        socket.send(os.urandom(1*bytesPerFrame))
+        socket.send(os.urandom(bytesPerFrame))
         QoEunbuff = message.decode("utf-8").split()[-1]
         print(f"Unbuffered Chunk Sent, QoE = {QoEunbuff}")
     elif BUFF_REQ in message.decode("utf-8") :
