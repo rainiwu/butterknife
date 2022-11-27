@@ -40,6 +40,3 @@ class control:
         for i in range(self.APP_SIZE):
             plt.plot(x, self.QOE_matrix[i])
         plt.show()
-
-c = control(2, 0.2, 64)
-print(c.run([1,1]))
