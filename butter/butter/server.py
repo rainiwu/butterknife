@@ -7,7 +7,7 @@ import string
 import os
 import zmq.asyncio
 import asyncio
-from manifest import manifest
+from manifest import Manifest
 import re
 
 
@@ -36,35 +36,47 @@ class VideoServer:
         
         self.QoEbuff = 100
         self.QoEunbuff = 100
+
+        self.running = True
     
-    async def run(self):
-        while True:
+    async def streamer(self):
+        while self.running:
             #  Wait for next request from client
-            message = await self.socket.recv()
+            message = self.socket.recv()
             print(f"Message Received: {message}")
 
             if message.decode("utf-8") == MAN_REQ_UNBUFF:
                 #print(f"im not stupid!")
                 # For buffered video, send the buffered manifest. 
-                mani = manifest(self.myChunks, 1, self.myFramesPerSecond, 0)
+                mani = Manifest(self.myChunks, 1, self.myFramesPerSecond, 0)
                 self.socket.send_pyobj(mani)
                 print(f"Unbuffered Manifest Sent")
             elif message.decode("utf-8") == MAN_REQ_BUFF:
                 # For buffered video, send the buffered manifest. 
-                mani = manifest(self.mChunks, self.myFramesPerChunk, self.myFramesPerSecond, 1)
+                mani = Manifest(self.myChunks, self.myFramesPerChunk, self.myFramesPerSecond, 1)
                 self.socket.send_pyobj(mani)
                 print(f"Buffered Manifest Sent")
             elif UNBUFF_REQ in message.decode("utf-8") :
-                self.socket.send(os.urandom(1*self.bytesPerFrame))
+                self.socket.send(os.urandom(int(1*self.myBytesPerFrame)))
                 self.QoEunbuff = message.decode("utf-8").split()[-1]
                 print(f"Unbuffered Chunk Sent, QoE = {self.QoEunbuff}")
             elif BUFF_REQ in message.decode("utf-8") :
-                self.socket.send(os.urandom(self.framesPerChunk*self.bytesPerFrame))
+                self.socket.send(os.urandom(int(self.myFramesPerChunk*self.myBytesPerFrame)))
                 QoEbuff = message.decode("utf-8").split()[-1]
                 print(f"Buffered Chunk Sent, QoE = {QoEbuff}")
+            else:
+                print(f"Malformed request received.")
 
     async def getQoE(self):
         return [self.QoEbuff , self.QoEunbuff]
+
+    def run(self):
+        loop = asyncio.new_event_loop()
+        loop.create_task(self.streamer())
+        try:
+            loop.run_forever()
+        finally: 
+            self.running = False
         
         
 if __name__ == '__main__':
