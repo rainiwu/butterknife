@@ -6,7 +6,7 @@ import time
 import string
 import os
 import zmq
-from manifest import manifest
+from manifest import Manifest
 import re
 
 MAN_REQ_BUFF = "GET manifest buffered"
@@ -40,12 +40,12 @@ while True:
     if message.decode("utf-8") == MAN_REQ_UNBUFF:
         # print(f"im not stupid!")
         # For buffered video, send the buffered manifest.
-        mani = manifest(chunks, 1, framesPerSecond, 0)
+        mani = Manifest(chunks, 1, framesPerSecond, 0)
         socket.send_pyobj(mani)
         print(f"Unbuffered Manifest Sent")
     elif message.decode("utf-8") == MAN_REQ_BUFF:
         # For buffered video, send the buffered manifest.
-        mani = manifest(chunks, framesPerChunk, framesPerSecond, 1)
+        mani = Manifest(chunks, framesPerChunk, framesPerSecond, 1)
         socket.send_pyobj(mani)
         print(f"Buffered Manifest Sent")
     elif UNBUFF_REQ in message.decode("utf-8"):
