@@ -4,12 +4,10 @@ import zmq
 import zmq.asyncio
 import asyncio
 import time
+
 import logging
-from contextlib import suppress
-
+import argparse
 from typing import List
-
-logging.basicConfig(level=logging.INFO)
 
 
 class BufferedClient:
@@ -53,7 +51,7 @@ class BufferedClient:
         self.LOGGER.info("received Manifest from server")
 
     def run(self) -> None:
-        asyncio.run(client.setup())
+        asyncio.run(self.setup())
         loop = asyncio.new_event_loop()
         loop.create_task(self.fill_buffer())
         loop.create_task(self.consume_buffer())
@@ -77,7 +75,7 @@ class BufferedClient:
             await self.socket.send_string(self.BUFF_REQ + str(self.__calculate_qoe()))
             reply: bytes = await self.socket.recv(copy=True)
             self.buffer.append(reply)
-            self.LOGGER.info(f"received chunk of size {len(reply)}")
+            self.LOGGER.debug(f"received chunk of size {len(reply)}")
 
     async def consume_buffer(self) -> None:
         """
@@ -106,9 +104,18 @@ class BufferedClient:
         return result
 
 
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(
+        prog="BufferedClient",
+        description="Simulates a buffered video streaming application",
+    )
+    parser.add_argument("--ip", default="localhost")
+    args = parser.parse_args()
+
+    client = BufferedClient("tcp://" + args.ip + ":5555")
+    client.run()
+
+
 if __name__ == "__main__":
-    client = BufferedClient("tcp://localhost:5555")
-    try:
-        client.run()
-    finally:
-        pass
+    main()
