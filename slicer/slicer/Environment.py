@@ -22,7 +22,7 @@ class Application_env(object):
         self.count = 0
         self.max_count = 5000
 
-    def step(self, action_num):
+    def step(self, action_num, new_QoE_list):
         # Convert/decode action into specific application and behavior
         action_index = action_num // 2
         # update the priority list
@@ -33,7 +33,8 @@ class Application_env(object):
         
         self.previous_QoE_list = np.copy(self.QoE_list)
         # get new QoE list anc calculate reward
-        self.calculate_QoE()
+        self.QoE_list = np.copy(new_QoE_list)
+
         reward = self.calculate_reward(action_num)
         self.previous_reward = reward
         observation = np.zeros(self.app_size * 2)

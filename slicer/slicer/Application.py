@@ -3,42 +3,43 @@ from Environment import Application_env
 import numpy as np
 import matplotlib.pyplot as plt
 
-if __name__ == '__main__':
-    # Parameters
-    APP_SIZE = 4
-    LEARNING_RATE = 0.2
-    BATCH_SIZE = 64
-
-    # Initialize environment and agent
-    env = Application_env(app_size=APP_SIZE, lr=0.1, batch_size=BATCH_SIZE)
-    agent = Agent(gamma=0.99, epsilon=1, batch_size=BATCH_SIZE, n_actions=APP_SIZE * 2,
+class control:
+    def __init__(self, APP_SIZE=2, LEARNING_RATE=0.2, BATCH_SIZE=64):
+        self.app_size = APP_SIZE
+        self.learning_rate = LEARNING_RATE
+        self.batch_size = BATCH_SIZE
+        # Initialize environment and agent
+        self.env = Application_env(app_size=APP_SIZE, lr=0.1, batch_size=BATCH_SIZE)
+        self.agent = Agent(gamma=0.99, epsilon=1, batch_size=BATCH_SIZE, n_actions=APP_SIZE * 2,
             eps_end=0.01, input_dims=[APP_SIZE * 2], lr=0.003)
-    scores, eps_history = [], []
+        self.scores = []
+        self.eps_history = []
+        self.times = 0
+        self.observation = self.env.reset()
+        self.QoE_matrix = [[]]
+        for i in range(self.app_size):
+            self.QoE_matrix.append([])
 
-    times = 100000
-    observation = env.reset()
-    QOE_matrix = [[]]
-    for i in range(APP_SIZE):
-        QOE_matrix.append([])
-
-    for i in range(times):
+    def run(self, QoE_list):
         score = 0
-        done = False
-        while not done:
-            action = agent.choose_action(observation)
-            observation_, reward, done, info = env.step(action)
-            for i in range(APP_SIZE):
-                QOE_matrix[i].append(env.QoE_list[i])
-            score += reward
-            agent.store_transition(observation, action, reward, observation_, done)
-            agent.learn()
-            observation = observation_
-        scores.append(score)
-        eps_history.append(agent.epsilon)
+        action = self.agent.choose_action(self.observation)
+        observation_, reward, done, info = self.env.step(action, QoE_list)
+        for i in range(self.app_size):
+            self.QoE_matrix[i].append(self.env.QoE_list[i])
+        score += reward
+        self.agent.store_transition(self.observation, action, reward, observation_, done)
+        self.agent.learn()
+        self.observation = observation_
+        self.eps_history.append(self.agent.epsilon)
+        self.times += 1
+        avg_score = np.mean(self.agent.epsilon)
+        return self.env.priority_list
+    
+    def plot(self):
+        x = [i+1 for i in range(self.times)]
+        for i in range(self.APP_SIZE):
+            plt.plot(x, self.QOE_matrix[i])
+        plt.show()
 
-        avg_score = np.mean(scores[-100:])
-        #print(i, 'score %.2f' % score, 'average score %.2f' % avg_score, 'epsilon %.2f' % agent.epsilon)
-    x = [i+1 for i in range(times)]
-    for i in range(APP_SIZE):
-        plt.plot(x, QOE_matrix[i])
-    plt.show()
+c = control(2, 0.2, 64)
+print(c.run([1,1]))
