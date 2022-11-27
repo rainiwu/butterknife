@@ -6,6 +6,7 @@ authors = ["Raini Wu <rainiwu@ucsd.edu>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+butter = {path = "../butter"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.3"
