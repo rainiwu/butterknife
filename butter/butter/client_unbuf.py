@@ -19,17 +19,16 @@ qoe = 100
 
 while 1:
     stall = 0
-    socket.send_string('GET unbuffered ' + str(qoe))
+    socket.send_string("GET unbuffered " + str(qoe))
     frame_received = socket.recv()
 
-    if(frame_received == None):
+    if frame_received == None:
         stall = 1
         stall_start = time.time()
-    elif(frame_received == None and stall == 1): 
+    elif frame_received == None and stall == 1:
         stall_end = time.time()
 
-                                                                                                                                                                                                                                        
-    if(stall == 0):
+    if stall == 0:
         stall_time = 0
     else:
         stall_time = stall_time + (stall_end - stall_start)
@@ -37,5 +36,5 @@ while 1:
     end = time.time()
     total_time = end - start
 
-    qoe = (1 - (stall_time/total_time)) * 100
-    #socket.send_string(str(qoe))
+    qoe = (1 - (stall_time / total_time)) * 100
+    # socket.send_string(str(qoe))

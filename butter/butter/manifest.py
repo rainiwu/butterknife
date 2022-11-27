@@ -3,5 +3,5 @@ class manifest:
         self.totalChunks = totalChunks
         self.framePerChunk = framePerChunks
         self.frameRate = frameRate
-        #0 for unbuffered, 1 for buffered
+        # 0 for unbuffered, 1 for buffered
         self.buff = buff
