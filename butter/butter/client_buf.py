@@ -21,6 +21,9 @@ class BufferedClient:
     def __init__(
         self,
         address: str = "tcp://localhost:5555",
+        frame_time: float = FRAME_TIME,
+        recovery_time: float = RECOVERY_TIME,
+        buffer_size: int = BUFFER_SIZE,
     ) -> None:
         self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
         #  Socket to talk to server
@@ -28,7 +31,7 @@ class BufferedClient:
         self.socket.connect(address)
         self.LOGGER.info(f"connected to {address}")
 
-        self.max_buffer: int = self.BUFFER_SIZE
+        self.max_buffer: int = buffer_size
         self.buffer: List[bytes] = []
 
         self.manifest: Manifest = Manifest()
@@ -36,8 +39,17 @@ class BufferedClient:
         # metrics for qoe calculation
         self.stall_events: int = 0
         self.consume_events: int = 0
+        self.frame_time = frame_time
+        self.recovery_time = recovery_time
 
         self.stay_alive: bool = True
+
+        self.LOGGER.info("created new client")
+        self.LOGGER.info(f"frame time: {frame_time} ms")
+        self.LOGGER.info(f"recovery time: {recovery_time} ms")
+        self.LOGGER.info(
+            f"buffer size: {buffer_size} chunks; {buffer_size * frame_time * 1e3} ms"
+        )
 
     async def setup(self) -> None:
         """
@@ -48,6 +60,7 @@ class BufferedClient:
         if not isinstance(self.manifest, Manifest):
             self.LOGGER.critical("received malformed Manifest from server")
             raise TypeError
+        # TODO: frame time can be derived from manifest information
         self.LOGGER.info("received Manifest from server")
 
     def run(self) -> None:
@@ -68,7 +81,7 @@ class BufferedClient:
         while self.stay_alive:
             if len(self.buffer) == self.max_buffer or self.consume_events == 0:
                 # wait for some time before next request if buffer is full
-                await asyncio.sleep(self.FRAME_TIME)
+                await asyncio.sleep(self.frame_time)
                 continue
 
             # request for a buffer, alongside current qoe
@@ -86,20 +99,20 @@ class BufferedClient:
             if len(self.buffer) == 0:
                 self.__stall()
                 # allow the application to recover from the stall
-                await asyncio.sleep(self.RECOVERY_TIME)
-                self.LOGGER.info(f"done waiting for {self.RECOVERY_TIME*1e3} ms")
+                await asyncio.sleep(self.recovery_time)
+                self.LOGGER.info(f"done waiting for {self.recovery_time*1e3} ms")
                 continue
 
             self.buffer.pop()
-            await asyncio.sleep(self.FRAME_TIME)
+            await asyncio.sleep(self.frame_time)
 
     def __stall(self) -> None:
         self.stall_events += 1
         self.LOGGER.info(f"stall event {self.stall_events} detected")
 
     def __calculate_qoe(self) -> float:
-        total_time: float = self.consume_events * self.FRAME_TIME
-        stall_time: float = self.stall_events * self.RECOVERY_TIME
+        total_time: float = self.consume_events * self.frame_time
+        stall_time: float = self.stall_events * self.recovery_time
         result: float = (1 - stall_time / total_time) * 100
         return result
 
@@ -111,9 +124,17 @@ def main() -> None:
         description="Simulates a buffered video streaming application",
     )
     parser.add_argument("--ip", default="localhost")
+    parser.add_argument("--ft", default="0.016")
+    parser.add_argument("--rt", default="0.016")
+    parser.add_argument("--bs", default="500")
     args = parser.parse_args()
 
-    client = BufferedClient("tcp://" + args.ip + ":5555")
+    client = BufferedClient(
+        address="tcp://" + args.ip + ":5555",
+        frame_time=float(args.ft),
+        recovery_time=float(args.rt),
+        buffer_size=int(args.bs),
+    )
     client.run()
 
 
