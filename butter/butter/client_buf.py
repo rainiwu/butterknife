@@ -1,98 +1,114 @@
+from manifest import Manifest
+
 import zmq
-from manifest import manifest
-from threading import Thread
+import zmq.asyncio
+import asyncio
 import time
+import logging
+from contextlib import suppress
 
-BUFFER_SIZE = 500
-CONSUME_WAIT = 0.0001
+from typing import List
+
+logging.basicConfig(level=logging.INFO)
 
 
-class client_buffer:
+class BufferedClient:
+    BUFF_REQ: str = "GET buffered "
+    MAN_REQ: str = "GET manifest buffered"
+    LOGGER = logging.getLogger(name="BufferedClient")
+    FRAME_TIME: float = 0.016  # seconds
+    RECOVERY_TIME: float = FRAME_TIME  # seconds
+    BUFFER_SIZE: int = 500  # number of chunks
+
     def __init__(
         self,
-        address="tcp://localhost:5555",
-        buffer_size=500,
-        consume_wait=0.0001,
-    ):
-        self.context = zmq.Context()
+        address: str = "tcp://localhost:5555",
+    ) -> None:
+        self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
         #  Socket to talk to server
-        self.socket = self.context.socket(zmq.REQ)
+        self.socket: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
         self.socket.connect(address)
-        print("Client connected to address: %s" % address)
-        self.current_buffer = 0
-        self.consume_index = 0
-        self.occupied_buffer = 0
-        self.max_buffer = buffer_size
-        self.my_buffer = [buffer_size]
-        self.BUFF_REQ = "GET buffered "
-        self.MAN_REQ = "GET manifest buffered"
-        self.client_timer = time.time()
-        self.stall_timer = 0
-        self.my_manifest = manifest()
-        self.my_consume_wait = consume_wait
+        self.LOGGER.info(f"connected to {address}")
 
-    def start(self):
-        self.socket.send_string(self.MAN_REQ)
-        self.my_manifest = self.socket.recv()
-        print("Received manifest from server")
+        self.max_buffer: int = self.BUFFER_SIZE
+        self.buffer: List[bytes] = []
 
-    def run(self):
-        while True:
-            if self.occupied_buffer == self.max_buffer:
-                self.stall_run()
-            self.socket.send_string(self.BUFF_REQ + str(self.calculate_QoE()))
-            reply = self.socket.recv()
-            self.my_buffer[self.current_buffer] = reply
-            print(f"Received reply ")  # {self.BUFF_REQ} [ {reply} ]")
-            self.occupied_buffer += 1
-            self.current_buffer = (self.current_buffer + 1) % len(
-                self.my_buffer
-            )
+        self.manifest: Manifest = Manifest()
 
-    def consume(self):
-        while True:
-            if self.occupied_buffer == 0:
-                self.stall_consume()
-            consumed_info = self.my_buffer[self.consume_index]
-            self.occupied_buffer -= 1
-            time.sleep(self.my_consume_wait)
-            print(f"Consume info ")  # {consumed_info}")
-            self.consume_index = (self.consume_index + 1) % len(self.my_buffer)
+        # metrics for qoe calculation
+        self.stall_events: int = 0
+        self.consume_events: int = 0
 
-    def stall_consume(self):
-        print("Stalling due too empty buffer for consume")
-        start = time.time()
-        while self.occupied_buffer == 0:
-            continue
-        end = time.time()
-        self.stall_timer += end - start
-        print(
-            "Recover from stalling (consume) - Stall timer %d"
-            % self.stall_timer
-        )
+        self.stay_alive: bool = True
 
-    def stall_run(self):
-        start = time.time()
-        print("Stalling due too full buffer for load")
-        while self.occupied_buffer == self.max_buffer:
-            continue
-        end = time.time()
-        print(
-            "Recover from stalling (run) - Stall timer %d" % self.stall_timer
-        )
-        self.stall_timer += end - start
+    async def setup(self) -> None:
+        """
+        obtains the video manifest from the server
+        """
+        await self.socket.send_string(self.MAN_REQ)
+        self.manifest = await self.socket.recv_pyobj()
+        if not isinstance(self.manifest, Manifest):
+            self.LOGGER.critical("received malformed Manifest from server")
+            raise TypeError
+        self.LOGGER.info("received Manifest from server")
 
-    def calculate_QoE(self):
-        total_time = time.time() - self.client_timer
-        stall_time = self.stall_timer
-        QoE = (1 - stall_time / total_time) * 100
-        return QoE
+    def run(self) -> None:
+        asyncio.run(client.setup())
+        loop = asyncio.new_event_loop()
+        loop.create_task(self.fill_buffer())
+        loop.create_task(self.consume_buffer())
+        try:
+            loop.run_forever()
+        finally:
+            self.stay_alive = False
+
+    async def fill_buffer(self) -> None:
+        """
+        increases the buffer incrementally through a network request
+        also sends qoe
+        """
+        while self.stay_alive:
+            if len(self.buffer) == self.max_buffer or self.consume_events == 0:
+                # wait for some time before next request if buffer is full
+                await asyncio.sleep(self.FRAME_TIME)
+                continue
+
+            # request for a buffer, alongside current qoe
+            await self.socket.send_string(self.BUFF_REQ + str(self.__calculate_qoe()))
+            reply: bytes = await self.socket.recv(copy=True)
+            self.buffer.append(reply)
+            self.LOGGER.info(f"received chunk of size {len(reply)}")
+
+    async def consume_buffer(self) -> None:
+        """
+        decreases the buffer incrementally every frame_time
+        """
+        while self.stay_alive:
+            self.consume_events += 1
+            if len(self.buffer) == 0:
+                self.__stall()
+                # allow the application to recover from the stall
+                await asyncio.sleep(self.RECOVERY_TIME)
+                self.LOGGER.info(f"done waiting for {self.RECOVERY_TIME*1e3} ms")
+                continue
+
+            self.buffer.pop()
+            await asyncio.sleep(self.FRAME_TIME)
+
+    def __stall(self) -> None:
+        self.stall_events += 1
+        self.LOGGER.info(f"stall event {self.stall_events} detected")
+
+    def __calculate_qoe(self) -> float:
+        total_time: float = self.consume_events * self.FRAME_TIME
+        stall_time: float = self.stall_events * self.RECOVERY_TIME
+        result: float = (1 - stall_time / total_time) * 100
+        return result
 
 
 if __name__ == "__main__":
-    cb = client_buffer("tcp://localhost:5555", BUFFER_SIZE, CONSUME_WAIT)
-    cb.start()
-    a = Thread(target=cb.run)
-    b = Thread(target=cb.consume)
-    a.start()
-    b.start()
+    client = BufferedClient("tcp://localhost:5555")
+    try:
+        client.run()
+    finally:
+        pass
