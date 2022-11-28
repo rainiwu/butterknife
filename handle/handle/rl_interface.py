@@ -15,19 +15,22 @@ class rl_interface:
         self.prioritized_id = "70"
 
     async def get_priority(self):
-        await self.socket.send_string("GET priority")
-        print("Priority request sent")
-        reply = await self.socket.recv_string()
-        if reply != "Unrecognize request":
-            self.prioritized_id = reply
-            print(self.prioritized_id)
-        else:
-            print("Request unrecognized")
+        while True:
+            await self.socket.send_string("GET priority")
+            print("Priority request sent")
+            reply = await self.socket.recv_string()
+            if reply != "Unrecognize request":
+                self.prioritized_id = reply
+                print(self.prioritized_id)
+            else:
+                print("Request unrecognized")
 
     async def report_prioirty(self):
-        await self.socket_srs.send(int(self.prioritized_id).to_bytes(4, 'little'))
-        print("Priority sent to srsRAN: " + self.prioritized_id)
-        print(int(self.prioritized_id).to_bytes(4, 'little'))
+        while True:
+            await self.socket_srs.send(int(self.prioritized_id).to_bytes(4, 'little'))
+            await asyncio.sleep(0.001)
+            print("Priority sent to srsRAN: " + self.prioritized_id)
+            print(int(self.prioritized_id).to_bytes(4, 'little'))
 
     def run(self):
         loop = asyncio.new_event_loop()
