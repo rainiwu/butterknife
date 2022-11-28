@@ -2,14 +2,17 @@ import zmq
 import zmq.asyncio
 import asyncio
 
-RUN_INDEFINITE = False
+ADDR = "ipc:///dev/shm/priorities"
 class rl_interface:
-    def __init__(self, address: str = "tcp://localhost:5557"):
+    def __init__(self, address: str = "tcp://localhost:5557", address_srs = "ipc:///dev/shm/priorities"):
         # Initialize socket
         self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
         self.socket: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
+        self.socket_srs: zmq.asyncio.Socket = self.context.socket(zmq.PUB) 
         self.socket.connect(address)
-        self.prioritized_id = "Undecided"
+        self.socket_srs.connect(address_srs)
+
+        self.prioritized_id = "70"
 
     async def get_priority(self):
         await self.socket.send_string("GET priority")
@@ -21,10 +24,16 @@ class rl_interface:
         else:
             print("Request unrecognized")
 
-    def run(self):
-        l1 = asyncio.new_event_loop()
-        l1.run_until_complete(self.get_priority())
-        l1.close()
+    async def report_prioirty(self):
+        await self.socket_srs.send(int(self.prioritized_id).to_bytes(4, 'little'))
+        print("Priority sent to srsRAN: " + self.prioritized_id)
+        print(int(self.prioritized_id).to_bytes(4, 'little'))
 
-rli = rl_interface("tcp://localhost:5557")
+    def run(self):
+        loop = asyncio.new_event_loop()
+        loop.create_task(self.get_priority())
+        loop.create_task(self.report_prioirty())
+        loop.run_forever()
+
+rli = rl_interface("tcp://localhost:5557", "ipc:///dev/shm/priorities")
 rli.run()
