@@ -13,6 +13,7 @@ import csv
 
 
 class VideoServer:
+
     MAN_REQ_BUFF = "GET manifest buffered"
     MAN_REQ_UNBUFF = "GET manifest unbuffered"
     BUFF_REQ = "GET buffered"
@@ -27,7 +28,7 @@ class VideoServer:
     FRAMESPERSECOND = 30
     BYTESPERFRAME = 10e3
 
-    NUMBER_OF_CLIENTS = 1
+    NUMBER_OF_CLIENTS = 4
 
     def __init__(self, address = ADDRESS, chunks = CHUNKS, framesPerChunk = FRAMESPERCHUNK, framesPerSecond = FRAMESPERSECOND, bytesPerFrame = BYTESPERFRAME, numClients = NUMBER_OF_CLIENTS):
         # Create socket for clients
@@ -49,6 +50,10 @@ class VideoServer:
 
         self.running = True
 
+        self.csvName = "QoEcsv " + time.asctime() + ".csv"
+        self.QoEcsv = open(self.csvName,'a')
+        self.QoEcsvWriter = csv.writer(self.QoEcsv)
+        self.StartingTime = time.time()
         self.firstTimeDictReq = True
 
         print(f"Server Started")
@@ -111,18 +116,10 @@ class VideoServer:
             if messageDecoded == self.QOE_DICT_REQ:
                 # Write QoE data to CSV
                 if self.firstTimeDictReq:
-                    # open the file in the write mode
-                    with open('QoEcsv.csv','a') as f:
-                        # create the csv writer
-                        writer = csv.writer(f)
-                        # write a row to the csv file
-                        writer.writerow(list(self.QoEdict.keys()))
+                    self.QoEcsvWriter.writerow(["Time"] + list(self.QoEdict.keys()))
+                    self.StartingTime = time.time()
                     self.firstTimeDictReq = False
-                with open('QoEcsv.csv','a') as f:
-                    # create the csv writer
-                    writer = csv.writer(f)
-                    # write a row to the csv file
-                    writer.writerow(list(self.QoEdict.values()))
+                self.QoEcsvWriter.writerow([time.time() - self.StartingTime] + list(self.QoEdict.values()))
 
                 # Send the QoE dictionary
                 await self.socketRL.send_pyobj(self.QoEdict)
@@ -142,5 +139,10 @@ class VideoServer:
         
 if __name__ == '__main__':
     vidServ = VideoServer()
-    vidServ.run()
+    try:
+        vidServ.run()
+    except:
+        vidServ.QoEcsv.close()
+
+
    
