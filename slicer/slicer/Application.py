@@ -41,9 +41,12 @@ class control_server:
 
     async def get_num_of_clients(self):
         # Request for number of clients
-        self.socket_sl.send(b"GET number of clients")
-        msg = await self.socket_sl.recv_string()
-        self.app_size = int(msg)
+        msg = "-1"
+        while msg == "-1":
+            self.socket_sl.send(b"GET quantity")
+            msg = await self.socket_sl.recv_string()
+            if (msg != "-1"):
+                self.app_size = len(msg)
 
     async def get_dictionary(self):
         while self.running:
