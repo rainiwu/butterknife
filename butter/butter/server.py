@@ -86,8 +86,8 @@ class VideoServer:
             else:
                 print(f"Malformed request received.")
 
-            print(f"Dictionary of QoEs:")
-            print(self.QoEdict)
+            #print(f"Dictionary of QoEs:")
+            #print(self.QoEdict)
 
 
     async def sendQoE(self) -> None:
@@ -95,6 +95,8 @@ class VideoServer:
             #  Wait for next request from client
             message = await self.socketRL.recv()
             messageDecoded = message.decode("utf-8")
+
+            #print("QoE Request Received")
 
             if messageDecoded == self.QOE_GET_NUM:
                 if len(self.QoEdict) == self.myNumClients:

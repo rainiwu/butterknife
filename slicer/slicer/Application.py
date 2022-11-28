@@ -51,14 +51,15 @@ class control_server:
     async def get_dictionary(self):
         while self.running:
             await self.socket_sl.send(b"GET qoedict")
+            print("QoE request sent")
             dictionary = await self.socket_sl.recv_pyobj()
-            print(len(dictionary))
+            print(dictionary)
             self.ID = []
             QoE_list = []
             if len(dictionary) != 0:
                 for key in dictionary.keys():
                     self.ID.append(key)
-                    QoE_list.append(dictionary[key])
+                    QoE_list.append(float(dictionary[key]))
                 score = 0
                 action = self.agent.choose_action(self.observation)
                 observation_, reward, done, info = self.env.step(action, np.asarray(QoE_list))
