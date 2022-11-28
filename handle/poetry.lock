@@ -10,6 +10,14 @@ python-versions = "*"
 pycparser = "*"
 
 [[package]]
+name = "numpy"
+version = "1.23.5"
+description = "NumPy is the fundamental package for array computing with Python."
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[[package]]
 name = "py"
 version = "1.11.0"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
@@ -51,10 +59,11 @@ pyzmq = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "33cfb62751076e8722753f802b64bcfcbff903c1185733e0048dcefd7b3e4f31"
+content-hash = "f9791f3c2d459c4ab968252ba3a15c7920c5caaa9f606c3cb3d9d2e64122fc1b"
 
 [metadata.files]
 cffi = []
+numpy = []
 py = []
 pycparser = []
 pyzmq = []

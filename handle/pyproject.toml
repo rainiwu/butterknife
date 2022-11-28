@@ -7,6 +7,7 @@ authors = ["Raini Wu <rainiwu@ucsd.edu>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 zmq = "^0.0.0"
+numpy = "^1.23.5"
 
 [tool.poetry.dev-dependencies]
 
