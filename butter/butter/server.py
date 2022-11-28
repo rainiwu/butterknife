@@ -34,8 +34,7 @@ class VideoServer:
         self.myFramesPerSecond = framesPerSecond
         self.myBytesPerFrame = bytesPerFrame
         
-        self.QoEbuff = 100
-        self.QoEunbuff = 100
+        self.QoEdict = {}
 
         self.running = True
     
@@ -58,17 +57,20 @@ class VideoServer:
                 print(f"Buffered Manifest Sent")
             elif UNBUFF_REQ in message.decode("utf-8") :
                 self.socket.send(os.urandom(int(1*self.myBytesPerFrame)))
-                self.QoEunbuff = message.decode("utf-8").split()[-1]
-                print(f"Unbuffered Chunk Sent, QoE = {self.QoEunbuff}")
+                self.QoEdict.update({"70": message.decode("utf-8").split()[-1]})
+                print(f"Unbuffered Chunk Sent.")
             elif BUFF_REQ in message.decode("utf-8") :
                 self.socket.send(os.urandom(int(self.myFramesPerChunk*self.myBytesPerFrame)))
-                QoEbuff = message.decode("utf-8").split()[-1]
-                print(f"Buffered Chunk Sent, QoE = {QoEbuff}")
+                self.QoEdict.update({"71": message.decode("utf-8").split()[-1]})
+                print(f"Buffered Chunk Sent.")
             else:
                 print(f"Malformed request received.")
 
+            print(f"Dictionary of QoEs:")
+            print(self.QoEdict)
+
     async def getQoE(self):
-        return [self.QoEbuff , self.QoEunbuff]
+        return self.QoEdict
 
     def run(self):
         loop = asyncio.new_event_loop()
