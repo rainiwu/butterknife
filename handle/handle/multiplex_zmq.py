@@ -31,6 +31,7 @@ class ZmqMultiplexer:
         for addr in input_addresses:
             new_socket = self.context.socket(zmq.REQ)
             new_socket.connect(addr)
+            # new_socket.setsockopt_string(zmq.SUBSCRIBE, "")
             self.input_sockets.append(new_socket)
             self.LOGGER.info(f"connected to {addr}")
 
@@ -56,19 +57,22 @@ class ZmqMultiplexer:
             val: bytes = await socket.recv(copy=True)  # type: ignore
             samples = numpy.frombuffer(val, dtype=numpy.single)
             if len(packets) == 0:
-                packets = samples
+                packets = numpy.copy(samples)
                 continue
             for index, sample in enumerate(samples):
                 packets[index] += sample
 
+        # self.LOGGER.info("waiting on out_socket")
         await self.out_socket.recv()
         await self.out_socket.send(packets.tobytes())
-        self.LOGGER.debug(f"processed {len(packets.tobytes())} samples")
+        # self.LOGGER.info(f"processed {len(packets.tobytes())} samples")
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    input_addrs: List[str] = ["ipc:///dev/shm/srsue1_tx"]
+    input_addrs: List[str] = [
+        "ipc:///dev/shm/srsue1_tx"
+    ]  # , "ipc:///dev/shm/srsue2_tx"]
     mp = ZmqMultiplexer("ipc:///dev/shm/srsenb_rx")
     mp.setup(input_addrs)
     mp.run()
