@@ -1,4 +1,5 @@
 import zmq.asyncio
+import numpy
 
 import asyncio
 import struct
@@ -18,8 +19,8 @@ class ZmqMultiplexer:
 
     def __init__(self, output_address: str) -> None:
         self.context = zmq.asyncio.Context(1)
-        self.out_socket = self.context.socket(zmq.PUB)
-        self.out_socket.connect(output_address)
+        self.out_socket = self.context.socket(zmq.REP)
+        self.out_socket.bind(output_address)
         self.LOGGER.info(f"connected to {output_address}")
 
         self.input_sockets: List[zmq.asyncio.Socket] = []
@@ -28,9 +29,8 @@ class ZmqMultiplexer:
 
     def setup(self, input_addresses: List[str]) -> None:
         for addr in input_addresses:
-            new_socket = self.context.socket(zmq.SUB)
+            new_socket = self.context.socket(zmq.REQ)
             new_socket.connect(addr)
-            new_socket.setsockopt_string(zmq.SUBSCRIBE, "")
             self.input_sockets.append(new_socket)
             self.LOGGER.info(f"connected to {addr}")
 
@@ -43,31 +43,27 @@ class ZmqMultiplexer:
 
         loop.create_task(process_forever())
 
+        self.LOGGER.info("starting event loop")
         try:
             loop.run_forever()
         finally:
             loop.close()
 
     async def __process_sample(self) -> None:
-        packets: List[float] = []
-        result = array.array("f")
+        packets = numpy.array([], dtype=numpy.single)
         for socket in self.input_sockets:
-            self.LOGGER.info("receiving")
-            val: List[bytes] = await socket.recv_multipart(copy=True)  # type: ignore
-            self.LOGGER.info("converting")
-            # convert to float
-            result.frombytes(val[1])
-            samples: List[float] = result.tolist()
-
+            await socket.send_string("hello")
+            val: bytes = await socket.recv(copy=True)  # type: ignore
+            samples = numpy.frombuffer(val, dtype=numpy.single)
             if len(packets) == 0:
                 packets = samples
                 continue
             for index, sample in enumerate(samples):
                 packets[index] += sample
 
-        result.fromlist(packets)
-        await self.out_socket.send(result.tobytes())
-        self.LOGGER.info("processed samples sent")
+        await self.out_socket.recv()
+        await self.out_socket.send(packets.tobytes())
+        self.LOGGER.debug(f"processed {len(packets.tobytes())} samples")
 
 
 if __name__ == "__main__":
