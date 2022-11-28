@@ -89,7 +89,7 @@ class Application_env(object):
     def find_target_index(self):
         temp = np.copy(self.QoE_list)
         min_index = np.argmin(self.QoE_list)
-        while min_index in self.block_list and len(temp) != 0:
+        while min_index in self.block_list and len(temp) > 1:
             temp[min_index] = np.max(temp)
             min_index = np.argmin(temp)
         return min_index
