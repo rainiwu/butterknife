@@ -22,6 +22,8 @@ class Application_env(object):
         self.count = 0
         self.max_count = 5000
 
+
+
     def step(self, action_num, new_QoE_list):
         # Convert/decode action into specific application and behavior
         action_index = action_num // 2
