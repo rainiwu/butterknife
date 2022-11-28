@@ -37,6 +37,6 @@ class control:
     
     def plot(self):
         x = [i+1 for i in range(self.times)]
-        for i in range(self.APP_SIZE):
-            plt.plot(x, self.QOE_matrix[i])
+        for i in range(self.app_size):
+            plt.plot(x, self.QoE_matrix[i])
         plt.show()
