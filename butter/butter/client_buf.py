@@ -11,8 +11,6 @@ from typing import List
 
 
 class BufferedClient:
-    BUFF_REQ: str = "GET buffered "
-    MAN_REQ: str = "GET manifest buffered"
     LOGGER = logging.getLogger(name="BufferedClient")
     FRAME_TIME: float = 0.016  # seconds
     RECOVERY_TIME: float = FRAME_TIME  # seconds
@@ -24,16 +22,25 @@ class BufferedClient:
         frame_time: float = FRAME_TIME,
         recovery_time: float = RECOVERY_TIME,
         buffer_size: int = BUFFER_SIZE,
+        unbuffer: bool = True,
+        id: str = "70"
     ) -> None:
         self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
         #  Socket to talk to server
         self.socket: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
         self.socket.connect(address)
         self.LOGGER.info(f"connected to {address}")
-
+        self.unbuffer = unbuffer
+        self.id = id
         self.max_buffer: int = buffer_size
         self.buffer: List[bytes] = []
 
+        if self.unbuffer:
+            self.BUFF_REQ: str = "GET unbuffered " + self.id + " "
+            self.MAN_REQ: str = "GET manifest unbuffered"
+        else:
+            self.BUFF_REQ: str = "GET buffered " + self.id + " "
+            self.MAN_REQ: str = "GET manifest buffered"
         self.manifest: Manifest = Manifest()
 
         # metrics for qoe calculation
@@ -43,7 +50,7 @@ class BufferedClient:
         self.recovery_time = recovery_time
 
         self.stay_alive: bool = True
-
+        
         self.LOGGER.info("created new client")
         self.LOGGER.info(f"frame time: {frame_time} ms")
         self.LOGGER.info(f"recovery time: {recovery_time} ms")
@@ -78,6 +85,7 @@ class BufferedClient:
         increases the buffer incrementally through a network request
         also sends qoe
         """
+
         while self.stay_alive:
             if len(self.buffer) == self.max_buffer or self.consume_events == 0:
                 # wait for some time before next request if buffer is full
@@ -127,6 +135,8 @@ def main() -> None:
     parser.add_argument("--ft", default="0.016")
     parser.add_argument("--rt", default="0.016")
     parser.add_argument("--bs", default="500")
+    parser.add_argument("--ub", default="False")
+    parser.add_argument("--id", default="70")
     args = parser.parse_args()
 
     client = BufferedClient(
@@ -134,6 +144,8 @@ def main() -> None:
         frame_time=float(args.ft),
         recovery_time=float(args.rt),
         buffer_size=int(args.bs),
+        unbuffer=bool(args.ub),
+        id=args.id
     )
     client.run()
 
