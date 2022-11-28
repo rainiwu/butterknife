@@ -24,13 +24,15 @@ class control_server:
             self.QoE_matrix.append([])
 
         # Initialize ZMQ server
-        self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
-        self.socket: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REQ)
+        #self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
+        #self.socket: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
         self.socket.connect(address)
 
-    async def run(self, QoE_list):
+    def get_dictionary(self, QoE_list):
         self.socket.send(b"GET qoedict")
-        dictionary = await self.socket.recv()
+        dictionary = self.socket.recv()
         print(dictionary)
         score = 0
         action = self.agent.choose_action(self.observation)
@@ -51,4 +53,7 @@ class control_server:
         for i in range(self.app_size):
             plt.plot(x, self.QoE_matrix[i])
         plt.show()
+
+c = control_server(2, 0.2, 64, "tcp://localhost:5556")
+c.get_dictionary([1, 1])
 
