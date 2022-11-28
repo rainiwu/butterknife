@@ -5,16 +5,18 @@
 import time
 import string
 import os
+import zmq
 import zmq.asyncio
 import asyncio
 from manifest import Manifest
-import re
 
 
 MAN_REQ_BUFF = "GET manifest buffered"
 MAN_REQ_UNBUFF = "GET manifest unbuffered"
 BUFF_REQ = "GET buffered"
 UNBUFF_REQ = "GET unbuffered"
+
+QOE_DICT_REQ = "GET qoedict"
 
 CHUNKS = 25
 FRAMESPERCHUNK = 120
@@ -25,9 +27,14 @@ BYTESPERFRAME = 10e3
 class VideoServer:
 
     def __init__(self, address="tcp://*:5555", chunks = 25, framesPerChunk = 120, framesPerSecond = 30, bytesPerFrame = 10e3):
-        self.context = zmq.Context()
+        # Create socket for clients
+        self.context = zmq.asyncio.Context(1)
         self.socket = self.context.socket(zmq.REP)
         self.socket.bind(address)
+
+        # Create socket for talking to RL
+        self.socketRL = self.context.socket(zmq.REP)
+        self.socketRL.bind("tcp://*:5556")
         
         self.myChunks = chunks
         self.myFramesPerChunk = framesPerChunk
@@ -38,10 +45,10 @@ class VideoServer:
 
         self.running = True
     
-    async def streamer(self):
+    async def streamer(self) -> None:
         while self.running:
             #  Wait for next request from client
-            message = self.socket.recv()
+            message = await self.socket.recv()
             print(f"Message Received: {message}")
 
             if message.decode("utf-8") == MAN_REQ_UNBUFF:
@@ -69,12 +76,21 @@ class VideoServer:
             print(f"Dictionary of QoEs:")
             print(self.QoEdict)
 
-    async def getQoE(self):
-        return self.QoEdict
+
+    async def sendQoE(self) -> None:
+        #  Wait for next request from client
+        message = await self.socketRL.recv()
+
+        if message.decode("utf-8") == QOE_DICT_REQ:
+            # Send the QoE dictionary
+            self.socketRL.send_pyobj(self.QoEdict)
+            print(f"Dictionary Sent")
+        
 
     def run(self):
         loop = asyncio.new_event_loop()
         loop.create_task(self.streamer())
+        loop.create_task(self.sendQoE())
         try:
             loop.run_forever()
         finally: 
