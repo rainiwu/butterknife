@@ -78,13 +78,14 @@ class VideoServer:
 
 
     async def sendQoE(self) -> None:
-        #  Wait for next request from client
-        message = await self.socketRL.recv()
+        while self.running:
+            #  Wait for next request from client
+            message = await self.socketRL.recv()
 
-        if message.decode("utf-8") == QOE_DICT_REQ:
-            # Send the QoE dictionary
-            self.socketRL.send_pyobj(self.QoEdict)
-            print(f"Dictionary Sent")
+            if message.decode("utf-8") == QOE_DICT_REQ:
+                # Send the QoE dictionary
+                self.socketRL.send_pyobj(self.QoEdict)
+                print(f"Dictionary Sent")
         
 
     def run(self):

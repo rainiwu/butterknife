@@ -32,7 +32,7 @@ class control_server:
 
     def get_dictionary(self, QoE_list):
         self.socket.send(b"GET qoedict")
-        dictionary = self.socket.recv()
+        dictionary = self.socket.recv_pyobj()
         print(dictionary)
         score = 0
         action = self.agent.choose_action(self.observation)
