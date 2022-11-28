@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import zmq
 import zmq.asyncio
 import asyncio
-class control_server:
+class rl_control_server:
     def __init__(self, LEARNING_RATE: float = 0.2, 
                     BATCH_SIZE: int = 64, 
                     sl_address: str = "tcp://localhost:5556",
@@ -76,12 +76,13 @@ class control_server:
     
     async def send_priority(self):
         while self.running:
-            message = await self.socket_sr.recv()
-            result = self.ID[np.argmax(self.env.priority_list)]
-            await self.socket_sr.send_string(result)
+            message = await self.socket_sr.recv_string()
+            if message == "GET priority":
+                result = self.ID[np.argmax(self.env.priority_list)]
+                await self.socket_sr.send_string(result)
+            else:
+                await self.socket_sr.send_string("Unrecognize request")
             
-
-
     def run(self):
         loop = asyncio.new_event_loop()
         loop.create_task(self.get_dictionary())
@@ -97,6 +98,6 @@ class control_server:
             plt.plot(x, self.QoE_matrix[i])
         plt.show()
 
-c = control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
+c = rl_control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
 c.run()
 
