@@ -1,10 +1,13 @@
 from DQN import Agent
 from Environment import Application_env
+import time
 import numpy as np
 import matplotlib.pyplot as plt
-
-class control:
-    def __init__(self, APP_SIZE=2, LEARNING_RATE=0.2, BATCH_SIZE=64):
+import zmq
+import zmq.asyncio
+class control_server:
+    def __init__(self, APP_SIZE: int = 2, LEARNING_RATE: float = 0.2, 
+                    BATCH_SIZE: int = 64, address: str = "tcp://localhost:5556") -> None:
         self.app_size = APP_SIZE
         self.learning_rate = LEARNING_RATE
         self.batch_size = BATCH_SIZE
@@ -20,7 +23,15 @@ class control:
         for i in range(self.app_size):
             self.QoE_matrix.append([])
 
-    def run(self, QoE_list):
+        # Initialize ZMQ server
+        self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
+        self.socket: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
+        self.socket.connect(address)
+
+    async def run(self, QoE_list):
+        self.socket.send(b"GET qoedict")
+        dictionary = await self.socket.recv()
+        print(dictionary)
         score = 0
         action = self.agent.choose_action(self.observation)
         observation_, reward, done, info = self.env.step(action, QoE_list)
@@ -40,3 +51,4 @@ class control:
         for i in range(self.app_size):
             plt.plot(x, self.QoE_matrix[i])
         plt.show()
+
