@@ -10,6 +10,7 @@ import zmq.asyncio
 import asyncio
 from manifest import Manifest
 import csv
+import datetime
 
 
 class VideoServer:
@@ -50,7 +51,7 @@ class VideoServer:
 
         self.running = True
 
-        self.csvName = "QoEcsv " + time.asctime() + ".csv"
+        self.csvName = "QoEcsv_" + datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + ".csv"
         self.QoEcsv = open(self.csvName,'a')
         self.QoEcsvWriter = csv.writer(self.QoEcsv)
         self.StartingTime = time.time()
@@ -135,7 +136,7 @@ class VideoServer:
             loop.run_forever()
         finally: 
             self.running = False
-        
+    
         
 if __name__ == '__main__':
     vidServ = VideoServer()
