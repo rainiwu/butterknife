@@ -1,0 +1,3 @@
+[submodule "handle/srsRAN"]
+	path = handle/srsRAN
+	url = git@github.com:rainiwu/srsRAN.git
