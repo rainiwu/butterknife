@@ -74,16 +74,18 @@ class Application_env(object):
         action_index = action // 2
         min_index = self.find_target_index()
         if min_index == action_index:
+            reward = (self.QoE_list[min_index] - self.previous_QoE_list[min_index]) * 100
             if self.action_space[action] < 0:
-                return -300
-            reward = self.QoE_list[min_index] - self.previous_QoE_list[min_index]
-            if reward == 0 and action_index not in self.block_list:
-                self.block_list.append(action_index)
-                return -100
-            if reward != 0 and action_index in self.block_list:
-                self.block_list.remove(action_index)
+                reward = -100
+            #if reward == 0 and action_index not in self.block_list:
+                #self.block_list.append(action_index)
+                #return -100
+            #if reward != 0 and action_index in self.block_list:
+                #self.block_list.remove(action_index)
         else:
             reward = -100
+        #print(action_index)
+        #print(reward)
         return reward
 
     def find_target_index(self):
