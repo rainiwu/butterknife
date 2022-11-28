@@ -63,7 +63,6 @@ class control_server:
                 score = 0
                 action = self.agent.choose_action(self.observation)
                 observation_, reward, done, info = self.env.step(action, np.asarray(QoE_list))
-                print("Here")
                 for i in range(self.app_size):
                     self.QoE_matrix[i].append(self.env.QoE_list[i])
                 score += reward
