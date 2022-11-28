@@ -9,6 +9,7 @@ import zmq
 import zmq.asyncio
 import asyncio
 from manifest import Manifest
+import csv
 
 
 class VideoServer:
@@ -48,7 +49,10 @@ class VideoServer:
 
         self.running = True
 
+        self.firstTimeDictReq = True
+
         print(f"Server Started")
+
     
     async def streamer(self) -> None:
         while self.running:
@@ -105,6 +109,21 @@ class VideoServer:
                     await self.socketRL.send_string("-1")
             
             if messageDecoded == self.QOE_DICT_REQ:
+                # Write QoE data to CSV
+                if self.firstTimeDictReq:
+                    # open the file in the write mode
+                    with open('QoEcsv.csv','a') as f:
+                        # create the csv writer
+                        writer = csv.writer(f)
+                        # write a row to the csv file
+                        writer.writerow(list(self.QoEdict.keys()))
+                    self.firstTimeDictReq = False
+                with open('QoEcsv.csv','a') as f:
+                    # create the csv writer
+                    writer = csv.writer(f)
+                    # write a row to the csv file
+                    writer.writerow(list(self.QoEdict.values()))
+
                 # Send the QoE dictionary
                 await self.socketRL.send_pyobj(self.QoEdict)
                 print(f"Dictionary Sent to Model:")
