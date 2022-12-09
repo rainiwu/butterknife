@@ -1,6 +1,7 @@
 import numpy as np
 
-
+REWARD_FACTOR = 2000
+PUNISHMENT = 100
 class Application_env(object):
     def __init__(self, app_size, lr, batch_size):
         # Initialize QoE and priority_list list
@@ -63,37 +64,18 @@ class Application_env(object):
         self.action_index = 0
         return np.zeros(self.app_size * 2)
 
-    def calculate_QoE(self):
-        # temporary QoE calculation
-        self.previous_QoE_list = np.copy(self.QoE_list)
-        for i in range(len(np.array(self.QoE_list)) - 1):
-            self.QoE_list[i] += self.priority_list[i] * (i + 1)/100
-        #self.QoE_list /= np.sum(self.QoE_list)
-
     def calculate_reward(self, action):
         action_index = action // 2
         min_index = self.find_target_index()
-        if min_index == action_index:
-            reward = (self.QoE_list[min_index] - self.previous_QoE_list[min_index]) * 100
-            if self.action_space[action] < 0:
-                reward = -100
-            #if reward == 0 and action_index not in self.block_list:
-                #self.block_list.append(action_index)
-                #return -100
-            #if reward != 0 and action_index in self.block_list:
-                #self.block_list.remove(action_index)
+        if min_index == action_index and self.action_space[action] > 0:
+            QoE_sum_diff = (np.sum(self.QoE_list) - np.sum(self.previous_QoE_list)) / np.sum(self.previous_QoE_list)
+            reward = abs((self.QoE_list[min_index] - self.previous_QoE_list[min_index]) * REWARD_FACTOR * (1 + QoE_sum_diff))
         else:
-            reward = -100
-        #print(action_index)
-        #print(reward)
+            reward = PUNISHMENT * (-1)
         return reward
 
     def find_target_index(self):
-        #temp = np.copy(self.QoE_list)
         min_index = np.argmin(self.QoE_list)
-        #while min_index in self.block_list and len(temp) > 1:
-            #temp[min_index] = np.max(temp)
-            #min_index = np.argmin(temp)
         return min_index
 
     
