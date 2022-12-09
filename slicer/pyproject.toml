@@ -6,10 +6,11 @@ authors = ["Raini Wu <rainiwu@ucsd.edu>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-butter = {path = "../butter"}
 torch = "^1.13.0"
 numpy = "^1.23.5"
 matplotlib = "^3.6.2"
+pyzmq = "^24.0.1"
+zmq = "^0.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.3"

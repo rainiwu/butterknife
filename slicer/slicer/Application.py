@@ -6,11 +6,16 @@ import matplotlib.pyplot as plt
 import zmq
 import zmq.asyncio
 import asyncio
+
+
 class rl_control_server:
-    def __init__(self, LEARNING_RATE: float = 0.2, 
-                    BATCH_SIZE: int = 64, 
-                    sl_address: str = "tcp://localhost:5556",
-                    sr_address: str = "tcp://*:5557"):
+    def __init__(
+        self,
+        LEARNING_RATE: float = 0.2,
+        BATCH_SIZE: int = 64,
+        sl_address: str = "tcp://localhost:5556",
+        sr_address: str = "tcp://*:5557",
+    ):
         # Initialize ZMQ server
         self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
         self.socket_sl: zmq.asyncio.Socket = self.context.socket(zmq.REQ)
@@ -27,9 +32,18 @@ class rl_control_server:
         # Initialize environment and agent
         self.learning_rate = LEARNING_RATE
         self.batch_size = BATCH_SIZE
-        self.env = Application_env(app_size=self.app_size, lr=0.1, batch_size=BATCH_SIZE)
-        self.agent = Agent(gamma=0.99, epsilon=1, batch_size=BATCH_SIZE, n_actions=self.app_size * 2,
-            eps_end=0.01, input_dims=[self.app_size * 2], lr=0.003)
+        self.env = Application_env(
+            app_size=self.app_size, lr=0.1, batch_size=BATCH_SIZE
+        )
+        self.agent = Agent(
+            gamma=0.99,
+            epsilon=1,
+            batch_size=BATCH_SIZE,
+            n_actions=self.app_size * 2,
+            eps_end=0.01,
+            input_dims=[self.app_size * 2],
+            lr=0.003,
+        )
         self.scores = []
         self.eps_history = []
         self.times = 0
@@ -45,7 +59,7 @@ class rl_control_server:
         while msg == "-1":
             self.socket_sl.send(b"GET quantity")
             msg = await self.socket_sl.recv_string()
-            if (msg != "-1"):
+            if msg != "-1":
                 self.app_size = len(msg)
 
     async def get_dictionary(self):
@@ -62,11 +76,15 @@ class rl_control_server:
                     QoE_list.append(float(dictionary[key]))
                 score = 0
                 action = self.agent.choose_action(self.observation)
-                observation_, reward, done, info = self.env.step(action, np.asarray(QoE_list))
+                observation_, reward, done, info = self.env.step(
+                    action, np.asarray(QoE_list)
+                )
                 for i in range(self.app_size):
                     self.QoE_matrix[i].append(self.env.QoE_list[i])
                 score += reward
-                self.agent.store_transition(self.observation, action, reward, observation_, done)
+                self.agent.store_transition(
+                    self.observation, action, reward, observation_, done
+                )
                 self.agent.learn()
                 self.observation = observation_
                 self.eps_history.append(self.agent.epsilon)
@@ -74,10 +92,10 @@ class rl_control_server:
                 self.counter_plot += 1
                 if self.counter_plot == 5000:
                     self.counter_plot = 0
-                    self.plot()
+                    # self.plot()
             else:
                 print("Received empty dictionary")
-    
+
     async def send_priority(self):
         while self.running:
             message = await self.socket_sr.recv_string()
@@ -86,18 +104,18 @@ class rl_control_server:
                 await self.socket_sr.send_string(result)
             else:
                 await self.socket_sr.send_string("Unrecognize request")
-            
+
     def run(self):
         loop = asyncio.new_event_loop()
         loop.create_task(self.get_dictionary())
         loop.create_task(self.send_priority())
         try:
             loop.run_forever()
-        finally: 
+        finally:
             self.running = False
 
     def plot(self):
-        x = [i+1 for i in range(self.runtime)]
+        x = [i + 1 for i in range(self.runtime)]
         for i in range(self.app_size):
             plt.plot(x[100:], self.QoE_matrix[i][100:], label=self.ID[i])
         plt.legend(loc="upper right")
@@ -105,8 +123,8 @@ class rl_control_server:
         plt.xlabel("Scenes")
         plt.ylabel("QoE")
         plt.show()
-        plt.savefig('RL_result.png')
+        plt.savefig("RL_result.png")
+
 
 c = rl_control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
 c.run()
-
