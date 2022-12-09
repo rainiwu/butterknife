@@ -7,7 +7,7 @@ import zmq
 import zmq.asyncio
 import asyncio
 from client_simulation import client_simulation
-RUN_MODEL = True
+RUN_MODEL = False
 class rl_control_server_simulation:
     def __init__(self, LEARNING_RATE: float = 0.2, 
                     BATCH_SIZE: int = 64):

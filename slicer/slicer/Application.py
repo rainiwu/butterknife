@@ -97,14 +97,13 @@ class rl_control_server:
             self.running = False
 
     def plot(self):
-        x = [i+1 for i in range(self.runtime)]
+        x = [i+1 for i in range(self.times)]
         for i in range(self.app_size):
             plt.plot(x[100:], self.QoE_matrix[i][100:], label=self.ID[i])
         plt.legend(loc="upper right")
         plt.title("Reinforcement Learning for Scheduling")
         plt.xlabel("Scenes")
         plt.ylabel("QoE")
-        plt.show()
         plt.savefig('RL_result.png')
 
 c = rl_control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
