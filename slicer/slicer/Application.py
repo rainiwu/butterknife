@@ -18,7 +18,7 @@ class rl_control_server:
         self.socket_sl.connect(sl_address)
         self.socket_sr.bind(sr_address)
         self.running = True
-
+        self.counter_plot = 0
         # Request for number of clients
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self.get_num_of_clients())
@@ -71,6 +71,10 @@ class rl_control_server:
                 self.observation = observation_
                 self.eps_history.append(self.agent.epsilon)
                 self.times += 1
+                self.counter_plot += 1
+                if self.counter_plot == 5000:
+                    self.counter_plot = 0
+                    self.plot()
             else:
                 print("Received empty dictionary")
     
@@ -93,10 +97,15 @@ class rl_control_server:
             self.running = False
 
     def plot(self):
-        x = [i+1 for i in range(self.times)]
+        x = [i+1 for i in range(self.runtime)]
         for i in range(self.app_size):
-            plt.plot(x, self.QoE_matrix[i])
+            plt.plot(x[100:], self.QoE_matrix[i][100:], label=self.ID[i])
+        plt.legend(loc="upper right")
+        plt.title("Reinforcement Learning for Scheduling")
+        plt.xlabel("Scenes")
+        plt.ylabel("QoE")
         plt.show()
+        plt.savefig('RL_result.png')
 
 c = rl_control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
 c.run()
