@@ -18,7 +18,7 @@ class rl_interface:
         self.socket.connect(address)
         self.socket_srs.bind(address_srs)
 
-        self.prioritized_id = "70"
+        self.prioritized_id = "NaN"
 
     async def get_priority(self):
         while True:
@@ -27,7 +27,7 @@ class rl_interface:
             reply = await self.socket.recv_string()
             if reply != "Unrecognize request":
                 self.prioritized_id = reply
-                print(self.prioritized_id)
+                print(reply)
             else:
                 print("Request unrecognized")
 
