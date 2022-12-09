@@ -23,7 +23,7 @@ class BufferedClient:
         recovery_time: float = RECOVERY_TIME,
         buffer_size: int = BUFFER_SIZE,
         unbuffer: bool = True,
-        id: str = "70"
+        id: str = "70",
     ) -> None:
         self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
         #  Socket to talk to server
@@ -50,7 +50,7 @@ class BufferedClient:
         self.recovery_time = recovery_time
 
         self.stay_alive: bool = True
-        
+
         self.LOGGER.info("created new client")
         self.LOGGER.info(f"frame time: {frame_time} ms")
         self.LOGGER.info(f"recovery time: {recovery_time} ms")
@@ -93,7 +93,9 @@ class BufferedClient:
                 continue
 
             # request for a buffer, alongside current qoe
-            await self.socket.send_string(self.BUFF_REQ + str(self.__calculate_qoe()))
+            await self.socket.send_string(
+                self.BUFF_REQ + str(self.__calculate_qoe())
+            )
             reply: bytes = await self.socket.recv(copy=True)
             self.buffer.append(reply)
             self.LOGGER.debug(f"received chunk of size {len(reply)}")
@@ -108,7 +110,9 @@ class BufferedClient:
                 self.__stall()
                 # allow the application to recover from the stall
                 await asyncio.sleep(self.recovery_time)
-                self.LOGGER.info(f"done waiting for {self.recovery_time*1e3} ms")
+                self.LOGGER.info(
+                    f"done waiting for {self.recovery_time*1e3} ms"
+                )
                 continue
 
             self.buffer.pop()
@@ -119,9 +123,12 @@ class BufferedClient:
         self.LOGGER.info(f"stall event {self.stall_events} detected")
 
     def __calculate_qoe(self) -> float:
-        total_time: float = self.consume_events * self.frame_time
         stall_time: float = self.stall_events * self.recovery_time
+        total_time: float = self.consume_events * self.frame_time + stall_time
         result: float = (1 - stall_time / total_time) * 100
+        if result < 0:
+            result = 0
+            self.LOGGER.warn(f"impossible result achieved")
         return result
 
 
@@ -135,13 +142,12 @@ def main() -> None:
     parser.add_argument("--ft", default="0.016")
     parser.add_argument("--rt", default="0.016")
     parser.add_argument("--bs", default="500")
-    #parser.add_argument("--ub", default="False")
-    parser.add_argument('--buffer', action='store_false')
-    parser.add_argument('--unbuffer', dest='buffer', action='store_true')
+    # parser.add_argument("--ub", default="False")
+    parser.add_argument("--buffer", action="store_false")
+    parser.add_argument("--unbuffer", dest="buffer", action="store_true")
     parser.set_defaults(buffer=False)
     parser.add_argument("--id", default="70")
     args = parser.parse_args()
-
 
     client = BufferedClient(
         address="tcp://" + args.ip + ":5555",
@@ -149,7 +155,7 @@ def main() -> None:
         recovery_time=float(args.rt),
         buffer_size=int(args.bs),
         unbuffer=bool(args.buffer),
-        id=args.id
+        id=args.id,
     )
     client.run()
 
