@@ -122,9 +122,7 @@ class rl_control_server:
         plt.title("Reinforcement Learning for Scheduling")
         plt.xlabel("Scenes")
         plt.ylabel("QoE")
-        plt.show()
         plt.savefig("RL_result.png")
-
 
 c = rl_control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
 c.run()
