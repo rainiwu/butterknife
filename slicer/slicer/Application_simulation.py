@@ -90,8 +90,16 @@ class rl_control_server_simulation:
         
     def plot(self):
         x = [i+1 for i in range(self.runtime)]
+        labels = ["High throughput buffered", "Low throughput buffered", "High throughput unbuffered", "Low throughput unbuffered"]
         for i in range(self.app_size):
-            plt.plot(x[100:], self.QoE_matrix[i][100:])
+            plt.plot(x[100:], self.QoE_matrix[i][100:], label=labels[i])
+        plt.legend(loc="upper right")
+        if RUN_MODEL:
+            plt.title("Reinforcement Learning for Scheduling")
+        else:
+            plt.title("Round Robin Scheduling")
+        plt.xlabel("Scenes")
+        plt.ylabel("QoE")
         plt.show()
 
 c = rl_control_server_simulation(0.2, 64)
