@@ -11,6 +11,7 @@ import asyncio
 from manifest import Manifest
 import csv
 import datetime
+import argparse
 
 
 class VideoServer:
@@ -29,7 +30,7 @@ class VideoServer:
     FRAMESPERSECOND = 30
     BYTESPERFRAME = 10e3
 
-    NUMBER_OF_CLIENTS = 4
+    NUMBER_OF_CLIENTS = 2
 
     def __init__(self, address = ADDRESS, chunks = CHUNKS, framesPerChunk = FRAMESPERCHUNK, framesPerSecond = FRAMESPERSECOND, bytesPerFrame = BYTESPERFRAME, numClients = NUMBER_OF_CLIENTS):
         # Create socket for clients
@@ -139,7 +140,30 @@ class VideoServer:
     
         
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        prog="VideoServer",
+        description="Simulates a video serving application",
+    )
+    parser.add_argument("--ip", default="*")
+    parser.add_argument("--ch", default="25")
+    parser.add_argument("--fpc", default="120")
+    parser.add_argument("--fps", default="30")
+    parser.add_argument("--bpf", default="10000")
+    parser.add_argument("--nc", default="4")
+    args = parser.parse_args()
+
+    """
+    vidServ = VideoServer(
+        address = "tcp://" + args.ip + ":5555",
+        chunks = int(args.ch),
+        framesPerChunk = int(args.fpc),
+        framesPerSecond = int(args.fps),
+        bytesPerFrame = int(args.bpf),
+        numClients = int(args.nc)
+    )
+    """
     vidServ = VideoServer()
+    
     try:
         vidServ.run()
     except:

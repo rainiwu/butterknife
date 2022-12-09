@@ -135,16 +135,20 @@ def main() -> None:
     parser.add_argument("--ft", default="0.016")
     parser.add_argument("--rt", default="0.016")
     parser.add_argument("--bs", default="500")
-    parser.add_argument("--ub", default="False")
+    #parser.add_argument("--ub", default="False")
+    parser.add_argument('--buffer', action='store_false')
+    parser.add_argument('--unbuffer', dest='buffer', action='store_true')
+    parser.set_defaults(buffer=False)
     parser.add_argument("--id", default="70")
     args = parser.parse_args()
+
 
     client = BufferedClient(
         address="tcp://" + args.ip + ":5555",
         frame_time=float(args.ft),
         recovery_time=float(args.rt),
         buffer_size=int(args.bs),
-        unbuffer=bool(args.ub),
+        unbuffer=bool(args.buffer),
         id=args.id
     )
     client.run()
