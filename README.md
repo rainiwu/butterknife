@@ -9,11 +9,22 @@
         - server.py
         - manifest.py
         - plot.py
+    
 - handle
     - handler
         - multiplex_zmq.py
         - rl_interface.py
-    - srsRAN
+        
+    - srsRAN (submodule)
+    
+        - config 
+    
+            *(This is the configuration files used for testing)*
+    
+        - lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
+    
+            *(Modification made in srsRAN for our project)*
+    
 - slicer
     - slicer
         - network_slicing_application_simulation.py
@@ -21,6 +32,7 @@
         - client_simulation.py
         - DQN.py
         - Environment.py
+    
 - toast
     - toast
         - __init__.py
