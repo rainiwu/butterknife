@@ -57,12 +57,12 @@ Default value of parameter for client:
 
 --id: "70"
 
-To run the network slicing model:
+To run the network slicing application (reinforcement learning model):
 ```
 python3 ./slicer/slicer/network_slicing_application.py
 ```
 
-To run the network slicing model simulation:
+To run the network slicing model simulation (reinforcement learning model):
 ```
 python3 ./slicer/slicer/network_slicing_application_sim.py
 ```
