@@ -16,8 +16,8 @@
     - srsRAN
 - slicer
     - slicer
-        - Application_simulation.py
-        - Application.py
+        - network_slicing_application_simulation.py
+        - network_slicing_application.py
         - client_simulation.py
         - DQN.py
         - Environment.py
