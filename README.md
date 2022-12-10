@@ -24,7 +24,6 @@
         - ```
           lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
           ```
-    
             *(Modification made in srsRAN for our project)*
     
 - slicer
