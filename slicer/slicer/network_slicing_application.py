@@ -102,9 +102,11 @@ class rl_control_server:
             if message == "GET priority":
                 result = self.ID[np.argmax(self.env.priority_list)]
                 await self.socket_sr.send_string(result)
+                print("Sent priority {result}")
             else:
                 await self.socket_sr.send_string("Unrecognize request")
-
+                print("Unrecognize request from rl interface")
+            
     def run(self):
         loop = asyncio.new_event_loop()
         loop.create_task(self.get_dictionary())
