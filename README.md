@@ -53,7 +53,12 @@ Default value of parameter for client:
 
 To run the network slicing model:
 ```
-python3 ./slicer/slicer/Application.py
+python3 ./slicer/slicer/network_slicing_application.py
+```
+
+To run the network slicing model simulation:
+```
+python3 ./slicer/slicer/network_slicing_application_sim.py
 ```
 
 To run the scheduler interface:
