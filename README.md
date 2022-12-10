@@ -17,10 +17,10 @@
         
     - srsRAN (submodule)
     
-        - config 
-    
+        - ```
+          config 
+          ```
             *(This is the configuration files used for testing)*
-    
         - ```
           lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
           ```
