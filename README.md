@@ -57,6 +57,12 @@ Default value of parameter for client:
 
 --id: "70"
 
+UE configurations:
+|   |Buffer|Unbuffer|
+|---|---|---|
+|High throughput| Buffer size: 500, frame time = 0.008 | Buffer size: 1, frame time = 0.008 |
+|Low throughput| Buffer size: 500, frame time = 0.032 | Buffer size: 1, frame time = 0.032 |
+
 To run the network slicing application (reinforcement learning model):
 ```
 python3 ./slicer/slicer/network_slicing_application.py
