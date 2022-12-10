@@ -21,7 +21,9 @@
     
             *(This is the configuration files used for testing)*
     
-        - lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
+        - ```
+          lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
+          ```
     
             *(Modification made in srsRAN for our project)*
     
