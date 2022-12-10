@@ -44,11 +44,17 @@ python3 ./butter/butter/client.py --ip <ip address> --ft <frame time> --rt <reco
 ```
 
 Default value of parameter for client:
+
 --ip: "local host"
+
 --ft: "0.016"
+
 --rt: "0.016"
+
 --bs: "500"
+
 --buffer/--unbuffer
+
 --id: "70"
 
 To run the network slicing model:
