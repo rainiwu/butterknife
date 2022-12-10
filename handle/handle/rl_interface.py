@@ -8,7 +8,7 @@ ADDR = "ipc:///dev/shm/priorities"
 class rl_interface:
     def __init__(
         self,
-        address: str = "tcp://localhost:5557",
+        address: str = "ipc:///dev/shm/rl_interface",
         address_srs="ipc:///dev/shm/priorities",
     ):
         # Initialize socket
@@ -18,7 +18,7 @@ class rl_interface:
         self.socket.connect(address)
         self.socket_srs.bind(address_srs)
 
-        self.prioritized_id = "NaN"
+        self.prioritized_id = "1"
 
     async def get_priority(self):
         while True:
@@ -45,5 +45,5 @@ class rl_interface:
         loop.run_forever()
 
 
-rli = rl_interface("tcp://localhost:5557", "ipc:///dev/shm/priorities")
+rli = rl_interface()
 rli.run()

@@ -14,7 +14,7 @@ class rl_control_server:
         LEARNING_RATE: float = 0.2,
         BATCH_SIZE: int = 64,
         sl_address: str = "tcp://localhost:5556",
-        sr_address: str = "tcp://*:5557",
+        sr_address: str = "ipc:///dev/shm/rl_interface",
     ):
         # Initialize ZMQ server
         self.context: zmq.asyncio.Context = zmq.asyncio.Context(1)
@@ -126,5 +126,6 @@ class rl_control_server:
         plt.ylabel("QoE")
         plt.savefig("RL_result.png")
 
-c = rl_control_server(0.2, 64, "tcp://localhost:5556", "tcp://*:5557")
+
+c = rl_control_server()
 c.run()
