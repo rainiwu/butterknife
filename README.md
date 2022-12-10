@@ -3,39 +3,39 @@
 
 
 ## File structure (only source code shown)
-- butter
-    - butter
+- /butter
+    - /butter
         - client.py
         - server.py
         - manifest.py
         - plot.py
     
-- handle
-    - handler
+- /handle
+    - /handler
         - multiplex_zmq.py
         - rl_interface.py
         
-    - srsRAN (submodule)
+    - /srsRAN (submodule)
     
         - ```
-          config 
+          /config 
           ```
             *(This is the configuration files used for testing)*
         - ```
-          lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
+          /lib/srsenb/src/stack/mac/schedulers/sched_ext_prio.cc 
           ```
             *(Modification made in srsRAN for our project)*
     
-- slicer
-    - slicer
+- /slicer
+    - /slicer
         - network_slicing_application_simulation.py
         - network_slicing_application.py
         - client_simulation.py
         - DQN.py
         - Environment.py
     
-- toast
-    - toast
+- /toast
+    - /toast
         - __init__.py
         - client.py
         - main.py
